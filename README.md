@@ -2,7 +2,7 @@
 ## Website for Revising for Math, Science or Languages (German, and French)!
 <br>
 <br>
-<a href="https://revisionexperts.github.io" style="
+<a href="https://revisionexperts.github.io/maths/" style="
   display: inline-block;
   padding: 15px 30px;
   font-family: system-ui, sans-serif;
