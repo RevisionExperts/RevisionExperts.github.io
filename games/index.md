@@ -23,11 +23,9 @@
     <a href="/games/settings/" class="menu-btn">🔧 Settings</a>
     <a href="/games/leaderboard/" class="menu-btn">🏆 High Scores</a>
     <a href="/games/favorites/" class="menu-btn">⭐ Favorites</a>
-  </div> <!-- This tag MUST sit right here to close the sidebar column cleanly -->
+  </div>
 
   <!-- COLUMN 2: RIGHT CONTENT AREA WINDOW -->
-  <div class="arcade-content-window" markdown="1">
-    
   <div class="arcade-content-window" markdown="1">
 <div class="arcade-card-container">
 
