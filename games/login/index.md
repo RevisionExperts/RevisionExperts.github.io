@@ -8,8 +8,8 @@
 <div class="arcade-content-window" markdown="1">
 
 <div class="auth-card-wrapper">
-<h2 id="auth-title">🕹️ Player Login</h2>
-<p id="auth-subtitle">Sign in to sync high scores across device viewports.</p>
+<h2 id="auth-title">Login/Signup</h2>
+<p id="auth-subtitle">Loging in/Signing up gives you acsess to more features such as saving, emergentcy key and more.</p>
 
 <div class="auth-form-group">
 <label>Username</label>
