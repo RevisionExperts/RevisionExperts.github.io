@@ -1,1 +1,2 @@
-title: Arcade
+# _Arcade_
+## Games
