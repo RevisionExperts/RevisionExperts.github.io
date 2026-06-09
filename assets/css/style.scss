@@ -202,3 +202,17 @@
     &::-webkit-scrollbar-thumb { background-color: #2a2a32 !important; border-radius: 20px !important; }
     &::-webkit-scrollbar-thumb:hover { background-color: #00ff66 !important; }
 }
+#arcade-page .auth-form-group input {
+    background-color: #ffffff !important; /* Clean white input boxes */
+    border: 1px solid #323238 !important;
+    border-radius: 6px !important;
+    padding: 12px 14px !important;
+    
+    color: #000000 !important; 
+    
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    transition: border-color 0.2s ease !important;
+}
