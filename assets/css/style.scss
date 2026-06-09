@@ -8,7 +8,7 @@
    ========================================================================== */
 #arcade-page {
     display: flex !important;
-    flex-direction: column !important; /* Changes sidebar layout to top-to-bottom stack layout */
+    flex-direction: column !important; /* Stack layout top-to-bottom */
     width: 100vw !important;
     max-width: 100vw !important;
     min-height: 100vh !important;
@@ -16,97 +16,109 @@
     top: 0 !important;
     left: 0 !important;
     margin: 0 !important;
-    padding: 60px !important; /* Gives the whole page a clean, spacious margin */
+    padding: 60px !important; /* Clean outer screen cushion spacing */
     background-color: #121214 !important;
     color: #ffffff !important;
     z-index: 99999 !important; 
     box-sizing: border-box !important;
-    overflow-y: auto !important; /* Lets you scroll down through all your cards smoothly */
+    overflow-y: auto !important; /* Smooth scrolling for card stack */
 
     /* Remove native theme slashes over headers */
     h1, h2, h3 {
         color: #ffffff !important;
         margin-top: 0 !important;
     }
+    
     h1::before, h2::before, h3::before {
         content: none !important;
     }
 
-   /* ==========================================================================
-   UPDATED SCALED CARD GRID WITH RIGHT PANEL ALIGNMENT
-   ========================================================================== */
+    /* ==========================================================================
+       HORIZONTAL ARCADE CARD TABS LAYOUT SYSTEM
+       ========================================================================== */
 
-/* Outer structure panel alignment wrapper */
-#arcade-page .arcade-card-container {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 16px !important;
-    
-    /* 1. SIZING: Shrinks maximum width container from 900px down to 640px */
-    max-width: 640px !important;
-    width: 100% !important;
-    
-    /* 2. ALIGNMENT: Pushes the entire card container stack over to the right */
-    margin-left: auto !important; 
-    margin-right: 0 !important;
-    margin-top: 30px !important;
+    /* Main wrapping stack for the cards */
+    .arcade-card-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        max-width: 640px !important; /* Scaled down width */
+        width: 100% !important;
+        margin-left: auto !important; /* Pushes the entire stack to the right side */
+        margin-right: 0 !important;
+        margin-top: 30px !important;
+    }
+
+    /* Base card body wrapper structure */
+    .arcade-card-tab {
+        display: flex !important;
+        flex-direction: row !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        text-decoration: none !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        width: 100% !important;
+        min-height: 110px !important; 
+        height: 110px !important;
+    }
+
+    /* Slight interactive elevation lift on hover */
+    .arcade-card-tab:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Left-aligned landscape card cover graphic */
+    .card-image-box {
+        width: 160px !important;
+        min-width: 160px !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-color: rgba(0,0,0,0.1);
+    }
+
+    /* Content block positioning */
+    .card-text-box {
+        flex: 1 !important;
+        padding: 16px 20px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+    }
+
+    /* Title text rules */
+    .card-text-box h2 {
+        color: #1e293b !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        margin: 0 0 4px 0 !important;
+        padding: 0 !important;
+        text-transform: none !important;
+        text-align: left !important;
+    }
+
+    /* Paragraph body descriptions */
+    .card-text-box p {
+        color: #64748b !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        margin: 0 !important;
+    }
 }
 
-/* Base structural layout for your dynamic card links */
-#arcade-page .arcade-card-tab {
-    display: flex !important;
-    flex-direction: row !important;
-    border-radius: 8px !important;
-    overflow: hidden !important;
-    text-decoration: none !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
-    border: 1px solid rgba(0, 0, 0, 0.05) !important;
-    width: 100% !important;
-    
-    /* 3. SIZING: Lowers height boundary constraints for a tighter footprint */
-    min-height: 110px !important; 
-    height: 110px !important;
-}
-
-#arcade-page .arcade-card-tab:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15) !important;
-}
-
-/* 4. SIZING: Condenses the left-side thumbnail graphics block to 160px wide */
-#arcade-page .card-image-box {
-    width: 160px !important;
-    min-width: 160px !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-color: rgba(0,0,0,0.1);
-}
-
-/* Content typography spacing alignment */
-#arcade-page .card-text-box {
-    flex: 1 !important;
-    padding: 16px 20px !important; /* Shaved down inner padding */
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-}
-
-#arcade-page .card-text-box h2 {
-    color: #1e293b !important;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-    font-size: 18px !important; /* Slightly smaller button headers */
-    font-weight: 600 !important;
-    margin: 0 0 4px 0 !important;
-    padding: 0 !important;
-    text-transform: none !important;
-    text-align: left !important;
-}
-
-#arcade-page .card-text-box p {
-    color: #64748b !important;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-    font-size: 13px !important; /* Shrunk description font slightly */
-    line-height: 1.4 !important;
-    margin: 0 !important;
+/* Mobile responsive optimization column break */
+@media (max-width: 600px) {
+    #arcade-page {
+        .arcade-card-tab { 
+            flex-direction: column !important; 
+        }
+        .card-image-box { 
+            width: 100% !important; 
+            height: 160px !important; 
+        }
+    }
 }
