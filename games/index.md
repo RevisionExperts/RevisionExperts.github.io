@@ -9,21 +9,21 @@
   {% include game_card.html 
      location="/games/undertale-yellow" 
      name="Undertale Yellow" 
-     description="A brilliant fan-made prequel to the legendary RPG." 
+     description="Undertale but with a not so overpowered gun" 
      image="/games/undertale-yellow/thumbnail.png"
      bg_color="#ffcc00" %}
 
   {% include game_card.html 
      location="/games/people-playground" 
      name="People Playground" 
-     description="A physics-based sandbox game where you can cause massive chaos." 
+     description="blood, gore, chaos sandbox game" 
      image="/assets/img/playground.jpg"
      bg_color="#e2e8f0" %}
 
   {% include game_card.html 
      location="/games/sonic.exe" 
      name="Sonic.exe" 
-     description="The classic creepy gaming myth." 
+     description="sonic but hes a exe" 
      image="https://placehold.co"
      bg_color="#f87171" %}
 
