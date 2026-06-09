@@ -4,6 +4,18 @@
 
 <div id="arcade-page" markdown="1">
 
+  <!-- COLUMN 1: LEFT HAND GLOBAL MENU PANELS PANEL -->
+  <div class="arcade-sidebar">
+    <h3>⚙️ SYSTEM</h3>
+    <a href="/" class="menu-btn">🏠 Main Site</a>
+    <a href="/games/settings/" class="menu-btn">🔧 Settings</a>
+    <a href="/games/leaderboard/" class="menu-btn">🏆 High Scores</a>
+    <a href="/games/favorites/" class="menu-btn">⭐ Favorites</a>
+  </div>
+
+  <!-- COLUMN 2: RIGHT HAND DYNAMIC PLAY CONTENT CANVAS AREA -->
+  <div class="arcade-content-window" markdown="1">#
+    
 <div class="arcade-card-container">
 
   <!-- 1. Undertale Yellow -->
@@ -36,6 +48,8 @@
      description="Fishing..." 
      image="https://sites.cortland.edu/dragon-chronicle/wp-content/uploads/sites/43/2025/02/Webfishing_logo.png"
      bg_color="#82C8E5" %}
-</div>
+    </div>
+
+  </div>
 
 </div>
