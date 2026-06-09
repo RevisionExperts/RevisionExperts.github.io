@@ -1,6 +1,11 @@
 # _Arcade_
 ## Games
 
+<link rel="stylesheet" href="FlexTheme.css">
+
+<div id="arcade-page" markdown="1">
+
+
 <a href="https://revisionexperts.github.io/games/undertale-yellow/" style="
   display: inline-block;
   padding: 15px 30px;
@@ -48,3 +53,5 @@
 ">
   Sonic.exe
 </a>
+
+</div>
