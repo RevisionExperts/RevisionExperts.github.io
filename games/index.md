@@ -14,7 +14,7 @@
   </div>
 
   <!-- COLUMN 2: RIGHT HAND DYNAMIC PLAY CONTENT CANVAS AREA -->
-  <div class="arcade-content-window" markdown="1">#
+  <div class="arcade-content-window" markdown="1">
     
 <div class="arcade-card-container">
 
