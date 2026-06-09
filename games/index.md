@@ -42,7 +42,7 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   color: #ffffff;
-  background-color: #6D8196;
+  background-color: #CD1C18;
   text-decoration: none;
   border-radius: 0px;
 ">
