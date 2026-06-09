@@ -12,7 +12,7 @@
      name="Undertale Yellow" 
      description="undertale with a gun" 
      image="/games/undertale-yellow/thumbnail.png"
-     bg_color="#ffcc00" %}
+     bg_color="#EFBF04" %}
 
   <!-- 2. People Playground -->
   {% include game_card.html 
@@ -20,7 +20,7 @@
      name="People Playground" 
      description="Gore and chaos sandbox game" 
      image="/assets/img/playground.jpg"
-     bg_color="#4682b4" %}
+     bg_color="#6D8196" %}
 
   <!-- 3. Sonic.exe -->
   {% include game_card.html 
@@ -28,14 +28,14 @@
      name="Sonic.exe" 
      description="sonic but hes exe" 
      image="/games/sonic.exe/thumbnail.png"
-     bg_color="#d11a2a" %}
+     bg_color="#CD1C18" %}
 
   {% include game_card.html 
      location="/games/web-fishing" 
      name="Web Fishing" 
      description="Fishing..." 
      image="/games/web-fishing/"
-     bg_color="#d11a2a" %}
+     bg_color="#82C8E5" %}
 </div>
 
 </div>
