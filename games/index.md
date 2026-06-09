@@ -11,7 +11,7 @@
      location="/games/undertale-yellow" 
      name="Undertale Yellow" 
      description="undertale with a gun" 
-     image="https://upload.wikimedia.org/wikipedia/en/9/93/Undertale_Yellow.png"
+     image="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Undertale_Yellow_vector_logo_on_black_borders.svg/1280px-Undertale_Yellow_vector_logo_on_black_borders.svg.png?_=20231212195745"
      bg_color="#EFBF04" %}
 
   <!-- 2. People Playground -->
@@ -19,7 +19,7 @@
      location="/games/people-playground" 
      name="People Playground" 
      description="Gore and chaos sandbox game" 
-     image="/assets/img/playground.jpg"
+     image="https://static.wikia.nocookie.net/people-playground-game/images/c/c4/People_Playground_Steam_page_logo.jpg/revision/latest?cb=20240306161242"
      bg_color="#6D8196" %}
 
   <!-- 3. Sonic.exe -->
@@ -27,14 +27,14 @@
      location="/games/sonic.exe" 
      name="Sonic.exe" 
      description="sonic but hes exe" 
-     image="/games/sonic.exe/thumbnail.png"
+     image="https://i0.wp.com/constant-thinker.com/wp-content/uploads/2017/03/sonic-1.jpg?w=324&h=182&ssl=1"
      bg_color="#CD1C18" %}
 
   {% include game_card.html 
      location="/games/web-fishing" 
      name="Web Fishing" 
      description="Fishing..." 
-     image="/games/web-fishing/"
+     image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3146520/header.jpg?t=1728673229"
      bg_color="#82C8E5" %}
 </div>
 
