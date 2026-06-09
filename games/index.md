@@ -11,7 +11,7 @@
      location="/games/undertale-yellow" 
      name="Undertale Yellow" 
      description="undertale with a gun" 
-     image="/games/undertale-yellow/thumbnail.png"
+     image="/games/undertale-yellow/favicon.png"
      bg_color="#EFBF04" %}
 
   <!-- 2. People Playground -->
