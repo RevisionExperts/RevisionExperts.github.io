@@ -9,7 +9,7 @@
 
 <div class="auth-card-wrapper">
 <h2 id="auth-title">Login/Signup</h2>
-<p id="auth-subtitle">Loging in/Signing up gives you acsess to more features such as saving, emergentcy key and more.</p>
+<p id="auth-subtitle">Loging in/Signing up gives you access to more features such as saving, emergency key and more.</p>
 
 <div class="auth-form-group">
 <label>Username</label>
