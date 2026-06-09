@@ -32,29 +32,29 @@
        LEFT SIDEBAR NAVIGATION CONTROLS PANEL
        ========================================================================== */
     .arcade-sidebar {
-        width: 260px !important;
-        min-width: 260px !important;
+        width: 240px !important; /* Made the sidebar slightly narrower */
+        min-width: 240px !important;
         height: 100vh !important;
         background-color: #1a1a1e !important;
-        padding: 40px 20px !important;
+        padding: 30px 15px !important; /* Tightened outer sidebar cushion */
         border-right: 2px solid #2d2d34 !important;
         box-sizing: border-box !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 12px !important;
+        gap: 10px !important; /* Brought components closer together */
     }
 
-    /* AUTHENTICATION PROFILE LAYOUT CONTAINER */
+    /* PROFILE MODULE GATEWAY BUTTON (COMPACT SIZE) */
     .profile-account-card {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        gap: 14px !important;
+        gap: 10px !important;
         width: 100% !important;
-        padding: 12px !important;
-        margin-bottom: 20px !important;
+        padding: 8px !important; /* Smaller inside spacing */
+        margin-bottom: 14px !important;
         background-color: #222227 !important;
-        border-radius: 12px !important;
+        border-radius: 8px !important;
         text-decoration: none !important;
         border: 1px solid #2d2d34 !important;
         box-sizing: border-box !important;
@@ -66,9 +66,9 @@
         box-shadow: 0 4px 14px rgba(255, 204, 0, 0.15) !important;
     }
     .profile-avatar-circle {
-        width: 48px !important;
-        min-width: 48px !important;
-        height: 48px !important;
+        width: 36px !important; /* Scaled down avatar bubble from 48px to 36px */
+        min-width: 36px !important;
+        height: 36px !important;
         border-radius: 50% !important;
         object-fit: cover !important;
         border: 2px solid #323238 !important;
@@ -80,8 +80,8 @@
         justify-content: center !important;
     }
     .guest-user-icon {
-        width: 28px !important;
-        height: 28px !important;
+        width: 20px !important; /* Smaller avatar icon graphic */
+        height: 20px !important;
         transition: fill 0.2s ease-in-out !important;
     }
     .profile-meta-text {
@@ -92,33 +92,33 @@
     .username-display {
         color: #ffffff !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-        font-size: 14px !important;
+        font-size: 13px !important; /* Smaller text sizes */
         font-weight: 700 !important;
     }
     .login-action-link {
         color: #ffcc00 !important;
-        font-size: 11px !important;
+        font-size: 10px !important;
         font-weight: bold !important;
     }
 
-    /* Style for global links inside your left menu panel */
+    /* SYSTEM SUB-MENU BUTTON NAVIGATION TABS (COMPACT SIZE) */
     .menu-btn {
         display: block !important;
         width: 100% !important;
-        padding: 12px 16px !important;
+        padding: 8px 12px !important; /* Shaved down button vertical thickness */
         background-color: #222227 !important;
         color: #a8aab2 !important;
         text-decoration: none !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-        font-size: 13px !important;
+        font-size: 11px !important; /* Shrunk font size down from 13px */
         font-weight: 600 !important;
         text-transform: uppercase !important;
-        border-radius: 6px !important;
+        border-radius: 5px !important;
         border: 1px solid #2d2d34 !important;
         transition: all 0.2s ease-in-out !important;
     }
     .menu-btn:hover {
-        color: #00ff66 !important; /* Interactive arcade green highlight */
+        color: #00ff66 !important; 
         border-color: #00ff66 !important;
         background-color: #2a2a32 !important;
     }
