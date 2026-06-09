@@ -1,8 +1,6 @@
 # _Arcade_
-## Games
 
 <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
-
 <div id="arcade-page" markdown="1">
   
 <ul class="arcade-tab-list">
