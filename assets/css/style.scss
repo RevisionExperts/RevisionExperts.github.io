@@ -9,7 +9,7 @@
 
 /* This section targets ONLY pages using <div id="arcade-page"> */
 #arcade-page {
-    /* Stop margins from collapsing and causing that top white bar leak */
+    /* Stop margins from collapsing and causing top white bar leak */
     &::before {
         content: "";
         display: table;
@@ -19,7 +19,9 @@
     display: flex !important;
     flex-direction: row !important;
     width: 100vw !important;
+    max-width: 100vw !important; /* Locks layout to screen boundaries */
     min-height: 100vh !important;
+    max-height: 100vh !important; /* Locks content height from bleeding down */
     position: fixed !important; /* Locks layout directly to browser window frame edges */
     top: 0 !important;
     left: 0 !important;
@@ -29,6 +31,7 @@
     color: #ffffff !important;
     z-index: 99999 !important; /* Pulls the arcade window over default theme backgrounds */
     box-sizing: border-box !important;
+    overflow: hidden !important; /* Erases the right-side layout bleeding and white scroll channel */
 
     /* Turn your handmade navigation buttons back into the fixed sidebar column panel */
     .arcade-tab-list {
@@ -78,7 +81,8 @@
         background-color: #16161a !important;
         box-sizing: border-box !important;
         min-height: 100vh !important;
-        overflow-y: auto !important; /* Permits inside scrolling if your content gets long */
+        max-height: 100vh !important;
+        overflow-y: auto !important; /* Permits inside scrolling if your content gets long without breaking the grid */
     }
 
     /* Target headers inside your content block to erase native theme decorative lines */
