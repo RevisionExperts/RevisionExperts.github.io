@@ -11,7 +11,7 @@
      location="/games/undertale-yellow" 
      name="Undertale Yellow" 
      description="undertale with a gun" 
-     image="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Undertale_Yellow_vector_logo_on_black_borders.svg/1280px-Undertale_Yellow_vector_logo_on_black_borders.svg.png?_=20231212195745"
+     image="https://upload.wikimedia.org/wikipedia/commons/6/6b/Undertale_Yellow_splash_screen.png"
      bg_color="#EFBF04" %}
 
   <!-- 2. People Playground -->
@@ -19,7 +19,7 @@
      location="/games/people-playground" 
      name="People Playground" 
      description="Gore and chaos sandbox game" 
-     image="https://static.wikia.nocookie.net/people-playground-game/images/c/c4/People_Playground_Steam_page_logo.jpg/revision/latest?cb=20240306161242"
+     image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1118200/capsule_616x353.jpg?t=1776802758"
      bg_color="#6D8196" %}
 
   <!-- 3. Sonic.exe -->
@@ -34,7 +34,7 @@
      location="/games/web-fishing" 
      name="Web Fishing" 
      description="Fishing..." 
-     image="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3146520/header.jpg?t=1728673229"
+     image="https://sites.cortland.edu/dragon-chronicle/wp-content/uploads/sites/43/2025/02/Webfishing_logo.png"
      bg_color="#82C8E5" %}
 </div>
 
