@@ -10,7 +10,7 @@
   {% include game_card.html 
      location="/games/undertale-yellow" 
      name="Undertale Yellow" 
-     description="A brilliant fan-made prequel to the legendary RPG." 
+     description="undertale with a gun" 
      image="/games/undertale-yellow/thumbnail.png"
      bg_color="#ffcc00" %}
 
@@ -18,7 +18,7 @@
   {% include game_card.html 
      location="/games/people-playground" 
      name="People Playground" 
-     description="A physics-based sandbox game where you can cause massive chaos." 
+     description="Gore and chaos sandbox game" 
      image="/assets/img/playground.jpg"
      bg_color="#4682b4" %}
 
@@ -26,7 +26,7 @@
   {% include game_card.html 
      location="/games/sonic.exe" 
      name="Sonic.exe" 
-     description="The classic creepy gaming myth. Navigate a dark, eerie platforming world." 
+     description="sonic but hes exe" 
      image="/games/sonic.exe/thumbnail.png"
      bg_color="#d11a2a" %}
 
