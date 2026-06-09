@@ -12,19 +12,19 @@
 <p id="auth-subtitle">Sign in to sync high scores across device viewports.</p>
 
 <div class="auth-form-group">
-<label>Player Username</label>
+<label>Username</label>
 <input type="text" id="auth-username" placeholder="Choose username..." required>
 </div>
 
 <div class="auth-form-group">
-<label>Secret Password</label>
+<label>Password</label>
 <input type="password" id="auth-password" placeholder="••••••••" required>
 </div>
 
-<button id="btn-primary-auth" class="auth-submit-btn">Authorize Account</button>
+<button id="btn-primary-auth" class="auth-submit-btn">Log In</button>
 
 <p class="auth-toggle-notice">
-<span id="auth-switch-prompt">New to the platform?</span> 
+<span id="auth-switch-prompt">Sign Up</span> 
 <button id="btn-toggle-mode" class="auth-inline-link">Create Account</button>
 </p>
 </div>
