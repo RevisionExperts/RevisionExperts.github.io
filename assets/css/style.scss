@@ -32,91 +32,81 @@
         content: none !important;
     }
 
-    /* ==========================================================================
-       HORIZONTAL ARCADE CARD TABS LAYOUT SYSTEM
-       ========================================================================== */
+   /* ==========================================================================
+   UPDATED SCALED CARD GRID WITH RIGHT PANEL ALIGNMENT
+   ========================================================================== */
 
-    /* Main wrapping stack for the cards */
-    .arcade-card-container {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 20px !important;
-        max-width: 900px;
-        margin-top: 30px !important;
-    }
-
-    /* Base card body wrapper structure */
-    .arcade-card-tab {
-        display: flex !important;
-        flex-direction: row !important;
-        background-color: #ffffff !important; /* Clean white card backing like your image */
-        border-radius: 8px !important;
-        overflow: hidden !important;
-        text-decoration: none !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
-        border: 1px solid #eef0f4 !important;
-        width: 100% !important;
-        min-height: 140px;
-    }
-
-    /* Slight interactive elevation lift on hover */
-    .arcade-card-tab:hover {
-        transform: translateY(-3px) !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
-    }
-
-    /* Left-aligned landscape card cover graphic */
-    .card-image-box {
-        width: 240px !important;
-        min-width: 240px !important;
-        background-size: cover !important;
-        background-position: center !important;
-        background-color: #f4f5f7;
-    }
-
-    /* Content block positioning */
-    .card-text-box {
-        flex: 1 !important;
-        padding: 24px !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-    }
-
-    /* Title text rules matching your layout snapshot */
-    .card-text-box h2 {
-        color: #1e293b !important; /* Sleek navy/charcoal heading tint */
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-        font-size: 22px !important;
-        font-weight: 600 !important;
-        margin: 0 0 8px 0 !important;
-        padding: 0 !important;
-        text-transform: none !important;
-        text-align: left !important;
-    }
-
-    /* Paragraph body descriptions */
-    .card-text-box p {
-        color: #64748b !important; /* Soft descriptive slate gray color */
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-        font-size: 14px !important;
-        line-height: 1.5 !important;
-        margin: 0 0 12px 0 !important;
-    }
-
-    /* Meta tracking data string (Genre, Play icons, dates) */
-    .card-meta {
-        color: #94a3b8 !important; /* Lighter silver metadata text */
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-        font-size: 12px !important;
-        font-weight: 500 !important;
-    }
+/* Outer structure panel alignment wrapper */
+#arcade-page .arcade-card-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    
+    /* 1. SIZING: Shrinks maximum width container from 900px down to 640px */
+    max-width: 640px !important;
+    width: 100% !important;
+    
+    /* 2. ALIGNMENT: Pushes the entire card container stack over to the right */
+    margin-left: auto !important; 
+    margin-right: 0 !important;
+    margin-top: 30px !important;
 }
 
-/* Mobile responsive optimization column break */
-@media (max-width: 600px) {
-    #arcade-page .arcade-card-tab { flex-direction: column !important; }
-    #arcade-page .card-image-box { width: 100% !important; height: 160px !important; }
+/* Base structural layout for your dynamic card links */
+#arcade-page .arcade-card-tab {
+    display: flex !important;
+    flex-direction: row !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    text-decoration: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    width: 100% !important;
+    
+    /* 3. SIZING: Lowers height boundary constraints for a tighter footprint */
+    min-height: 110px !important; 
+    height: 110px !important;
 }
 
+#arcade-page .arcade-card-tab:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 4. SIZING: Condenses the left-side thumbnail graphics block to 160px wide */
+#arcade-page .card-image-box {
+    width: 160px !important;
+    min-width: 160px !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-color: rgba(0,0,0,0.1);
+}
+
+/* Content typography spacing alignment */
+#arcade-page .card-text-box {
+    flex: 1 !important;
+    padding: 16px 20px !important; /* Shaved down inner padding */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+#arcade-page .card-text-box h2 {
+    color: #1e293b !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-size: 18px !important; /* Slightly smaller button headers */
+    font-weight: 600 !important;
+    margin: 0 0 4px 0 !important;
+    padding: 0 !important;
+    text-transform: none !important;
+    text-align: left !important;
+}
+
+#arcade-page .card-text-box p {
+    color: #64748b !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-size: 13px !important; /* Shrunk description font slightly */
+    line-height: 1.4 !important;
+    margin: 0 !important;
+}
