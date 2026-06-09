@@ -4,32 +4,30 @@
 
 <div id="arcade-page" markdown="1">
 
-  <!-- COLUMN 1: LEFT HAND GLOBAL MENU PANELS PANEL -->
+  <!-- COLUMN 1: LEFT NAVIGATION SIDEBAR -->
   <div class="arcade-sidebar" markdown="1">
-        <!-- AUTHENTICATION GATEWAY PROFILE COMPONENT PLACEHOLDER -->
+    
     <a href="/games/login/" class="profile-account-card auth-guest-card" title="Click to Sign In">
-      
-      <!-- Guest User Avatar Frame Symbol -->
       <div class="profile-avatar-circle guest-avatar-frame">
         <svg xmlns="http://w3.org" viewBox="0 0 24 24" fill="#8a8d98" class="guest-user-icon">
           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
         </svg>
       </div>
-
       <div class="profile-meta-text">
         <span class="username-display">Guest Player</span>
         <span class="user-status-tag login-action-link">🔑 Sign In / Register</span>
       </div>
-
     </a>
 
     <h3>⚙️ SYSTEM</h3>
     <a href="/games/settings/" class="menu-btn">🔧 Settings</a>
     <a href="/games/leaderboard/" class="menu-btn">🏆 High Scores</a>
     <a href="/games/favorites/" class="menu-btn">⭐ Favorites</a>
-  </div>
+  </div> <!-- This tag MUST sit right here to close the sidebar column cleanly -->
 
-  <!-- COLUMN 2: RIGHT HAND DYNAMIC PLAY CONTENT CANVAS AREA -->
+  <!-- COLUMN 2: RIGHT CONTENT AREA WINDOW -->
+  <div class="arcade-content-window" markdown="1">
+    
   <div class="arcade-content-window" markdown="1">
 <div class="arcade-card-container">
 
