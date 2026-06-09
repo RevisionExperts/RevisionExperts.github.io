@@ -10,21 +10,21 @@
      location="/games/undertale-yellow" 
      name="Undertale Yellow" 
      description="Undertale but with a not so overpowered gun" 
-     image="/games/undertale-yellow/thumbnail.png"
+     image="https://www.steamgriddb.com/icon/15463"
      bg_color="#ffcc00" %}
 
   {% include game_card.html 
      location="/games/people-playground" 
      name="People Playground" 
      description="blood, gore, chaos sandbox game" 
-     image="/assets/img/playground.jpg"
+     image="https://www.steamgriddb.com/icon/15463"
      bg_color="#e2e8f0" %}
 
   {% include game_card.html 
      location="/games/sonic.exe" 
      name="Sonic.exe" 
      description="sonic but hes a exe" 
-     image="https://placehold.co"
+     image="https://www.steamgriddb.com/icon/15463"
      bg_color="#f87171" %}
 
 </div>
