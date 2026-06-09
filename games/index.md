@@ -9,20 +9,23 @@
   {% include game_card.html 
      location="/games/undertale-yellow" 
      name="Undertale Yellow" 
-     description="A brilliant fan-made prequel to the legendary RPG. Experience a brand new story." 
-     image="https://placehold.co" %}
+     description="A brilliant fan-made prequel to the legendary RPG." 
+     image="/games/undertale-yellow/thumbnail.png"
+     bg_color="#ffcc00" %}
 
   {% include game_card.html 
      location="/games/people-playground" 
      name="People Playground" 
-     description="A physics-based sandbox game where you can experiment and cause massive chaos." 
-     image="https://placehold.co" %}
+     description="A physics-based sandbox game where you can cause massive chaos." 
+     image="/assets/img/playground.jpg"
+     bg_color="#e2e8f0" %}
 
   {% include game_card.html 
      location="/games/sonic.exe" 
      name="Sonic.exe" 
-     description="The classic creepy gaming myth. Navigate a dark, eerie platforming world." 
-     image="https://placehold.co" %}
+     description="The classic creepy gaming myth." 
+     image="https://placehold.co"
+     bg_color="#f87171" %}
 
 </div>
 
