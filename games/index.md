@@ -1,57 +1,14 @@
 # _Arcade_
 ## Games
 
-<link rel="stylesheet" href="FlexTheme.css">
+<link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 
 <div id="arcade-page" markdown="1">
-
-
-<a href="https://revisionexperts.github.io/games/undertale-yellow/" style="
-  display: inline-block;
-  padding: 15px 30px;
-  font-family: system-ui, sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #ffffff;
-  background-color: #EFBF04;
-  text-decoration: none;
-  border-radius: 0px;
-">
-  Undertale Yellow
-</a>
-<br>
-<a href="https://revisionexperts.github.io/games/people-playground/" style="
-  display: inline-block;
-  padding: 15px 30px;
-  font-family: system-ui, sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #ffffff;
-  background-color: #6D8196;
-  text-decoration: none;
-  border-radius: 0px;
-">
-  People Playground
-</a>
-<br>
-<a href="https://revisionexperts.github.io/games/sonic.exe/" style="
-  display: inline-block;
-  padding: 15px 30px;
-  font-family: system-ui, sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #ffffff;
-  background-color: #CD1C18;
-  text-decoration: none;
-  border-radius: 0px;
-">
-  Sonic.exe
-</a>
+  
+<ul class="arcade-tab-list">
+  <li><a href="/games/undertale-yellow" style="background-color: #ffcc00; color: black;">Undertale Yellow</a></li>
+  <li><a href="/games/people-playground" style="background-color: #4682b4; color: white;">People Playground</a></li>
+  <li><a href="/games/sonic.exe" style="background-color: #d11a2a; color: white;">Sonic.exe</a></li>
+</ul>
 
 </div>
