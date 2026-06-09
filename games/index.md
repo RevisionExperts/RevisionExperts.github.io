@@ -30,6 +30,12 @@
      image="/games/sonic.exe/thumbnail.png"
      bg_color="#d11a2a" %}
 
+  {% include game_card.html 
+     location="/games/web-fishing" 
+     name="Web Fishing" 
+     description="Fishing..." 
+     image="/games/web-fishing/"
+     bg_color="#d11a2a" %}
 </div>
 
 </div>
