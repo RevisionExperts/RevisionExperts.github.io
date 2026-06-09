@@ -6,26 +6,29 @@
 
 <div class="arcade-card-container">
 
+  <!-- 1. Undertale Yellow -->
   {% include game_card.html 
      location="/games/undertale-yellow" 
      name="Undertale Yellow" 
-     description="Undertale but with a not so overpowered gun" 
-     image="https://www.steamgriddb.com/icon/15463"
+     description="A brilliant fan-made prequel to the legendary RPG." 
+     image="/games/undertale-yellow/thumbnail.png"
      bg_color="#ffcc00" %}
 
+  <!-- 2. People Playground -->
   {% include game_card.html 
      location="/games/people-playground" 
      name="People Playground" 
-     description="blood, gore, chaos sandbox game" 
-     image="https://www.steamgriddb.com/icon/15463"
-     bg_color="#e2e8f0" %}
+     description="A physics-based sandbox game where you can cause massive chaos." 
+     image="/assets/img/playground.jpg"
+     bg_color="#4682b4" %}
 
+  <!-- 3. Sonic.exe -->
   {% include game_card.html 
      location="/games/sonic.exe" 
      name="Sonic.exe" 
-     description="sonic but hes a exe" 
-     image="https://www.steamgriddb.com/icon/15463"
-     bg_color="#f87171" %}
+     description="The classic creepy gaming myth. Navigate a dark, eerie platforming world." 
+     image="/games/sonic.exe/thumbnail.png"
+     bg_color="#d11a2a" %}
 
 </div>
 
