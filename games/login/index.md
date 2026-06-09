@@ -1,10 +1,8 @@
 # _Login_
-
 <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 
 <div id="arcade-page" markdown="1">
 
-  <!-- Re-use our clean navigation include sidebar -->
   {% include arcade_sidebar.html %}
 
   <div class="arcade-content-window" markdown="1">
@@ -38,7 +36,7 @@
 <!-- LOAD FIREBASE WEB MODULE APIS (Version 10 CDN) -->
 <script type="module">
   import { initializeApp } from "https://gstatic.com";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://gstatic.com";
+  import { getAuth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://gstatic.com";
 
   // Paste YOUR personal Firebase Console setup object parameters down below
   const firebaseConfig = {
@@ -93,28 +91,26 @@
       return;
     }
 
-    // SILENT APPENDER WORKAROUND: Formats the username safely into a hidden email format
     const dummyEmail = `${rawUsername.toLowerCase()}@arcade.local`;
 
     try {
       submitBtn.innerText = "Processing Auth Script...";
       submitBtn.disabled = true;
 
+      // 🛑 CRITICAL ENFORCEMENT: Force Firebase to erase credentials when the browser session ends
+      await setPersistence(auth, browserSessionPersistence);
+
       if (isLoginMode) {
-        // Authenticated Login using masked username string
         await signInWithEmailAndPassword(auth, dummyEmail, password);
         alert("Authorization Successful! Welcome back.");
       } else {
-        // Authenticated Registration using masked username string
         await createUserWithEmailAndPassword(auth, dummyEmail, password);
         alert("Account Successfully Created! Welcome aboard.");
       }
       
-      // Send user back to main catalog menu window
       window.location.href = "{{ '/games/' | relative_url }}";
 
     } catch (error) {
-      // Clean up common Firebase error codes to fit username context
       let cleanMessage = error.message;
       if (error.code === "auth/invalid-credential") {
         cleanMessage = "Incorrect username or secret password.";
