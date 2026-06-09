@@ -7,7 +7,6 @@
    ISOLATION METHOD: TARGETS CODES UNDER THE GAMES / ARCADE PAGE ID ONLY
    ========================================================================== */
 
-/* This section targets ONLY pages using <div id="arcade-page"> */
 #arcade-page {
     /* Stop margins from collapsing and causing top white bar leak */
     &::before {
@@ -74,10 +73,13 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     }
 
-    /* Force all right-side main panel layout blocks to wrap next to the sidebar */
+    /* ==========================================================================
+       RIGHT WINDOW FRAME: PUSH CONTENT DOWN SO IT CLEARLY SEPARATES FROM THE CEILING
+       ========================================================================== */
     & > :not(.arcade-tab-list) {
         flex: 1 !important;
-        padding: 60px !important;
+        /* Increased the top padding boundary to 120px to force titles straight downward */
+        padding: 120px 60px 60px 60px !important; 
         background-color: #16161a !important;
         box-sizing: border-box !important;
         min-height: 100vh !important;
@@ -86,34 +88,30 @@
     }
 
     /* ==========================================================================
-       TEXT ENGINE AND TITLE VISIBILITY FORCE RESTORATIONS
+       TEXT TYPOGRAPHY ENGINE FIXES
        ========================================================================== */
-    
-    /* Explicitly make every single paragraph and layout text block visible inside the arcade */
     p, span, li, div, section, main {
         color: #ffffff !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
     }
 
-    /* Force the markdown titles (# Welcome to the Arcade) to load boldly on screen */
     h1, h2, h3, h4, h5, h6 {
         display: block !important;
         visibility: visible !important;
         color: #ffffff !important;
         font-weight: 800 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-        margin-top: 0 !important;
+        margin-top: 0 !important; /* Resets any margin collapse bugs pushing content up */
         margin-bottom: 20px !important;
-        text-indent: 0 !important; /* Clears out default theme indentation gaps */
+        text-indent: 0 !important;
         letter-spacing: normal !important;
     }
 
-    /* Increase title size specifically for H1 headings */
     h1 {
         font-size: 32px !important;
     }
 
-    /* Force nuke the theme's built-in blue slash marks (/) from rendering over your titles */
+    /* Keep theme slashes permanently removed */
     h1::before, h2::before, h3::before, h4::before, h5::before, h6::before {
         display: none !important;
         content: none !important;
