@@ -48,5 +48,3 @@
 ">
   Sonic.exe
 </a>
-  Undertale Yellow
-</a>
