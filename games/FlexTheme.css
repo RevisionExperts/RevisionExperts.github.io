@@ -1,56 +1,92 @@
 /* /games/FlexTheme.css */
 
-/* Force your global Jekyll wrapper to go full-width inside the games folder */
-.main-content, main, #content_wrap, .container, .wrapper {
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
+/* 1. Nuke the Architect theme's header and footer completely */
+#header_wrap, 
+#footer_wrap,
+header, 
+footer {
+    display: none !important;
 }
 
-/* Base flex layout for the arcade setup */
+/* 2. Strip all background patterns, margins, and padding from the theme body */
+body {
+    background: #121214 !important; /* Solid sleek backdrop instead of blue grid */
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 3. Force the main layout wrappers to span the absolute full width and height */
+#main_content_wrap,
+#main_content_wrap .outer,
+#main_content_wrap .inner,
+main,
+.container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 4. Turn the arcade wrapper into a true full-screen split layout */
 #arcade-page {
-    display: flex;
-    min-height: 100vh;
+    display: flex !important;
+    width: 100vw !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background-color: #121214;
     color: #ffffff;
-}
-
-/* Turn your games list into the fixed left navigation menu */
-#arcade-page > ul:first-of-type {
-    width: 280px;
-    background-color: #1a1a1e;
-    padding: 40px 20px;
-    position: fixed;
-    height: 100vh;
     box-sizing: border-box;
+}
+
+/* 5. Pin the tab sidebar tightly to the left viewport edge */
+#arcade-page .arcade-tab-list {
+    width: 300px !important;
+    min-width: 300px !important;
+    height: 100vh !important;
+    background-color: #1a1a1e;
+    padding: 40px 20px !important;
     margin: 0 !important;
-    list-style-type: none;
+    list-style-type: none !important;
     border-right: 2px solid #323238;
+    box-sizing: border-box;
+    position: sticky;
+    top: 0;
 }
 
-/* Style your game navigation links */
-#arcade-page > ul:first-of-type a {
-    color: #00ff66;
+/* 6. Blow out the content panel to occupy all remaining right-side real estate */
+#arcade-page > :not(.arcade-tab-list) {
+    flex: 1 !important;
+    padding: 60px !important;
+    background-color: #16161a;
+    box-sizing: border-box;
+    min-height: 100vh;
+}
+
+/* 7. Style the tab buttons cleanly */
+#arcade-page .arcade-tab-btn {
+    display: block !important;
+    color: #ffffff !important;
+    background-color: #222227;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border-radius: 6px;
     text-decoration: none;
-    display: block;
-    padding: 10px 0;
-    font-family: monospace;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
     font-weight: bold;
-}
-#arcade-page > ul:first-of-type a:hover {
-    color: #ff00ff;
-}
-
-/* Standard content pane on the right side */
-#arcade-page > :not(ul:first-of-type) {
-    margin-left: 310px;
-    padding: 40px;
-    flex: 1;
+    text-transform: uppercase;
+    text-align: center;
+    border: 1px solid #2d2d34;
+    transition: all 0.2s ease-in-out;
 }
 
-/* Mobile responsive optimization */
-@media (max-width: 768px) {
-    #arcade-page { flex-direction: column; }
-    #arcade-page > ul:first-of-type { width: 100%; height: auto; position: relative; border-right: none; }
-    #arcade-page > :not(ul:first-of-type) { margin-left: 0; padding: 20px; }
+/* Hover glow animations */
+#arcade-page .arcade-tab-btn:hover {
+    background-color: #2a2a32;
+    color: #00ff66 !important;
+    border-color: #00ff66;
+    transform: translateX(5px);
 }
