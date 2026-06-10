@@ -32,15 +32,15 @@ const firebaseConfig = {
   toggleBtn.addEventListener("click", () => {
     isLoginMode = !isLoginMode;
     if (isLoginMode) {
-      titleText.innerText = "🕹️ Player Login";
-      subtitleText.innerText = "Sign in to sync high scores across device viewports.";
-      submitBtn.innerText = "Authorize Account";
-      switchPrompt.innerText = "New to the platform?";
+      titleText.innerText = "Login/Signup";
+      subtitleText.innerText = ">Loging in/Signing up gives you access to more features such as saving, emergency key and more..";
+      submitBtn.innerText = "Sign Up";
+      switchPrompt.innerText = "New to the platform";
       toggleBtn.innerText = "Create Account";
     } else {
-      titleText.innerText = "🎮 Register Profile";
-      subtitleText.innerText = "Claim your universal arcade username today.";
-      submitBtn.innerText = "Create Profile";
+      titleText.innerText = "Login/Signup";
+      subtitleText.innerText = ">Loging in/Signing up gives you access to more features such as saving, emergency key and more.";
+      submitBtn.innerText = "Sign Up";
       switchPrompt.innerText = "Already have a profile?";
       toggleBtn.innerText = "Sign In";
     }
