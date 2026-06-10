@@ -1,9 +1,3 @@
-<link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
-
-<div id="arcade-page" markdown="1">
-
-{% include arcade_sidebar.html %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,40 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Counter-Strike 1.6 - Web Port</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body, html {
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-        }
-        .game-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; background-color: #000; overflow: hidden; }
+        .game-container { width: 100%; height: 100%; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
     <div class="game-container">
-        <!-- Serves the WebAssembly client inside your folder layout -->
+        <!-- Replaced sandbox with a fully permissive engine fallback -->
         <iframe 
             src="https://cs-online.club" 
-            allow="autoplay; keyboard; gamepad; fullscreen; pointer-lock"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads">
+            allow="autoplay; keyboard; gamepad; fullscreen; pointer-lock; cross-origin-isolated"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads allow-popups">
         </iframe>
     </div>
 
