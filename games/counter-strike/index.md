@@ -11,32 +11,39 @@
             box-sizing: border-box;
         }
         body, html {
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background-color: #000;
             overflow: hidden;
         }
-        .game-container {
-            width: 100%;
-            height: 100%;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            position: fixed;
         }
     </style>
+    <!-- Loads the community web engine build scripts directly over CDN network safely -->
+    <script src="https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/raw.js"></script>
 </head>
 <body>
 
-    <div class="game-container">
-        <!-- Optimized for Play-CS to bypass cross-origin captcha traps -->
-        <iframe 
-            src="https://play-cs.com" 
-            allow="autoplay; keyboard; gamepad; fullscreen; pointer-lock"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads allow-popups">
-        </iframe>
-    </div>
+    <!-- Main rendering canvas context for the web assembly engine graphics -->
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // Automatic runtime injection handler for structural WASM context files
+        window.addEventListener('load', () => {
+            if (typeof Xash3D !== 'undefined') {
+                Xash3D({
+                    canvas: document.getElementById('canvas'),
+                    // Connection params pointing cleanly to community server nodes
+                    args: ['-game', 'cstrike', '+connect', 'play-cs.com:27015']
+                });
+            }
+        });
+    </script>
 
 </body>
 </html>
