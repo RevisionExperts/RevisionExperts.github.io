@@ -1,0 +1,1 @@
+{% include arcade_sidebar.html %}
