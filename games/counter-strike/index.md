@@ -16,7 +16,7 @@
     <div class="game-container">
         <!-- Replaced sandbox with a fully permissive engine fallback -->
         <iframe 
-            src="https://cs-online.club" 
+            src="https://play-cs.com/"
             allow="autoplay; keyboard; gamepad; fullscreen; pointer-lock; cross-origin-isolated"
             sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads allow-popups">
         </iframe>
