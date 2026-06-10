@@ -11,6 +11,9 @@
             height: 100%; 
             background: #000; 
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         #embed-container { 
             width: 100vw; 
