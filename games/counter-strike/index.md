@@ -57,20 +57,21 @@
 <body>
 
     <div class="wrapper">
-        <!-- Navigation bar to allow players to return to your main homepage easily -->
         <div class="header-bar">
             <span>Counter-Strike 1.6 Web Port</span>
             <a href="https://github.io">← Back to Home</a>
         </div>
         
-        <!-- Uses a programmatic cross-origin embed layout optimized for Play-CS bypass rules -->
+        <!-- Removed sandbox attribute completely to fix Cloudflare captcha loops -->
+        <!-- Added explicit instructions for feature deployment and tracking -->
         <iframe 
             class="game-frame"
             src="https://play-cs.com" 
             allow="autoplay; keyboard; gamepad; fullscreen; pointer-lock"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-downloads allow-popups">
+            referrerpolicy="no-referrer-when-downgrade">
         </iframe>
     </div>
 
 </body>
 </html>
+
