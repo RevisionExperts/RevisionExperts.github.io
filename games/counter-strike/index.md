@@ -2,18 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Counter-Strike (DOS)</title>
-    <link rel="stylesheet" href="https://js-dos.com">
-    <script src="https://js-dos.com"></script>
+    <title>Counter-Strike Servers</title>
     <style>
-        html, body, #dos { width: 100%; height: 100%; margin: 0; padding: 0; background: #000; }
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; background: #000; }
+        #embed-container { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
-    <div id="dos"></div>
-    <script>
-        // This launches the game file located in this exact folder
-        Dos(document.getElementById("dos")).run("cs.zip");
-    </script>
+    <iframe id="embed-container" src="https://play-cs.com/en/servers" frameborder="0" allowfullscreen></iframe>
 </body>
 </html>
