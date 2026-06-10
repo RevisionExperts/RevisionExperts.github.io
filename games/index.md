@@ -33,12 +33,22 @@
      image="https://i0.wp.com/constant-thinker.com/wp-content/uploads/2017/03/sonic-1.jpg?w=324&h=182&ssl=1"
      bg_color="#CD1C18" %}
 
+  <!-- 4. Web Fishing -->
   {% include game_card.html 
      location="/games/web-fishing" 
      name="Web Fishing" 
      description="Fishing..." 
      image="https://sites.cortland.edu/dragon-chronicle/wp-content/uploads/sites/43/2025/02/Webfishing_logo.png"
      bg_color="#82C8E5" %}
+
+  <!-- 5. Counter-Strike -->
+  {% include game_card.html 
+     location="/games/counter-strike" 
+     name="Counter-Strike" 
+     description="Tactical first-person shooter" 
+     image="https://cdn.akamai.steamstatic.com/steam/apps/730/capsule_616x353.jpg?t=1733170852"
+     bg_color="#1A1A1A" %}
+
     </div>
 
   </div>
