@@ -4,10 +4,10 @@
 
 {% include arcade_sidebar.html %}
 
-## Sams Roadmap
+## sams Roadmap
 (insert here)
 <br>
 <br>
 <br>
-## Kalubs Roadmap
+## Shibas Roadmap
 (insert here)
