@@ -1,17 +1,18 @@
 <!-- _includes/auth_script.html -->
 <script type="module">
- import { initializeApp } from "https://gstatic.com";
+  import { initializeApp } from "https://gstatic.com";
   import { getAuth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://gstatic.com";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyARmMn5vR0v_Kse2iR_eRKNCbEZow2vScs",
-  authDomain: "arcade-login-c7c70.firebaseapp.com",
-  projectId: "arcade-login-c7c70",
-  storageBucket: "arcade-login-c7c70.firebasestorage.app",
-  messagingSenderId: "382833678664",
-  appId: "1:382833678664:web:944edbf3bccfe1fc38bb7d",
-  measurementId: "G-6VGZ4M1DHL"
-};
+  // Paste YOUR personal Firebase Console setup object parameters down below
+  const firebaseConfig = {
+    apiKey: "AIzaSyARmMn5vR0v_Kse2iR_eRKNCbEZow2vScs",
+    authDomain: "://firebaseapp.com",
+    projectId: "arcade-login-c7c70",
+    storageBucket: "arcade-login-c7c70.firebasestorage.app",
+    messagingSenderId: "38283367864",
+    appId: "1:38283367864:web:944edbf3bccfe1fc38bb7d",
+    measurementId: "G-6VGZ4M1DHL"
+  };
 
   // Initialize Core Services
   const app = initializeApp(firebaseConfig);
@@ -32,22 +33,22 @@ const firebaseConfig = {
   toggleBtn.addEventListener("click", () => {
     isLoginMode = !isLoginMode;
     if (isLoginMode) {
-      titleText.innerText = "Login/Signup";
-      subtitleText.innerText = ">Loging in/Signing up gives you access to more features such as saving, emergency key and more..";
-      submitBtn.innerText = "Sign Up";
-      switchPrompt.innerText = "New to the platform";
+      titleText.innerText = "🕹️ Player Login";
+      subtitleText.innerText = "Sign in to sync high scores across device viewports.";
+      submitBtn.innerText = "Authorize Account";
+      switchPrompt.innerText = "New to the platform?";
       toggleBtn.innerText = "Create Account";
     } else {
-      titleText.innerText = "Login/Signup";
-      subtitleText.innerText = ">Loging in/Signing up gives you access to more features such as saving, emergency key and more.";
-      submitBtn.innerText = "Sign Up";
+      titleText.innerText = "🎮 Register Profile";
+      subtitleText.innerText = "Claim your universal arcade username today.";
+      submitBtn.innerText = "Create Profile";
       switchPrompt.innerText = "Already have a profile?";
       toggleBtn.innerText = "Sign In";
     }
   });
 
   // Execute Firebase Secure Authentication Calls
-  submitBtn.addEventListener("click", async () => {
+  submitBtn.addEventListener("click", () => {
     const rawUsername = usernameInput.value.trim();
     const password = passwordInput.value;
 
@@ -57,37 +58,42 @@ const firebaseConfig = {
     }
 
     const dummyEmail = `${rawUsername.toLowerCase()}@arcade.local`;
+    submitBtn.innerText = "Processing Auth Script...";
+    submitBtn.disabled = true;
 
-    try {
-      submitBtn.innerText = "Processing Auth Script...";
-      submitBtn.disabled = true;
-
-      // Force Firebase to erase credentials when the browser session ends
-      await setPersistence(auth, browserSessionPersistence);
-
-      if (isLoginMode) {
-        await signInWithEmailAndPassword(auth, dummyEmail, password);
-        alert("Authorization Successful! Welcome back.");
-      } else {
-        await createUserWithEmailAndPassword(auth, dummyEmail, password);
-        alert("Account Successfully Created! Welcome aboard.");
-      }
-      
-      window.location.href = "{{ '/games/' | relative_url }}";
-
-    } catch (error) {
-      let cleanMessage = error.message;
-      if (error.code === "auth/invalid-credential") {
-        cleanMessage = "Incorrect username or secret password.";
-      } else if (error.code === "auth/email-already-in-use") {
-        cleanMessage = "This username is already taken by another player.";
-      } else if (error.code === "auth/weak-password") {
-        cleanMessage = "Password must be at least 6 characters long.";
-      }
-      
-      alert("Authentication Error: " + cleanMessage);
-      submitBtn.disabled = false;
-      submitBtn.innerText = isLoginMode ? "Authorize Account" : "Create Profile";
-    }
+    /* 
+        FIX: Force Session Persistence to resolve FIRST. 
+       This blocks local data caching and guarantees cross-computer safety.
+    */
+    setPersistence(auth, browserSessionPersistence)
+      .then(async () => {
+        if (isLoginMode) {
+          // Process Login Sequence
+          await signInWithEmailAndPassword(auth, dummyEmail, password);
+          alert("Authorization Successful! Welcome back.");
+        } else {
+          // Process Registration Sequence
+          await createUserWithEmailAndPassword(auth, dummyEmail, password);
+          alert("Account Successfully Created! Welcome aboard.");
+        }
+        // Redirect back to main menu
+        window.location.href = "{{ '/games/' | relative_url }}";
+      })
+      .catch((error) => {
+        let cleanMessage = error.message;
+        if (error.code === "auth/invalid-credential") {
+          cleanMessage = "Incorrect username or secret password.";
+        } else if (error.code === "auth/email-already-in-use") {
+          cleanMessage = "This username is already taken by another player.";
+        } else if (error.code === "auth/weak-password") {
+          cleanMessage = "Password must be at least 6 characters long.";
+        } else if (error.code === "auth/invalid-email") {
+          cleanMessage = "Invalid characters detected inside your username string.";
+        }
+        
+        alert("Authentication Error: " + cleanMessage);
+        submitBtn.disabled = false;
+        submitBtn.innerText = isLoginMode ? "Authorize Account" : "Create Profile";
+      });
   });
 </script>
