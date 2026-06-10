@@ -2,10 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Counter-Strike Servers</title>
     <style>
-        html, body { width: 100%; height: 100%; margin: 0; padding: 0; background: #000; }
-        #embed-container { width: 100%; height: 100%; border: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { 
+            width: 100%; 
+            height: 100%; 
+            background: #000; 
+            overflow: hidden;
+        }
+        #embed-container { 
+            width: 100vw; 
+            height: 100vh; 
+            border: none; 
+            display: block;
+        }
     </style>
 </head>
 <body>
