@@ -13,7 +13,7 @@
 </div>
 
 <div class="game-content">
-<iframe src="https://play-cs.com/en/servers" style="width: 100%; height: 700px; border: none; border-radius: 8px;" allow="fullscreen"></iframe>
+<iframe src="https://play-cs.com/en/servers" style="width: 100%; height: 700px; border: none; border-radius: 8px;" allow="fullscreen" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"></iframe>
 </div>
 
 </div>
