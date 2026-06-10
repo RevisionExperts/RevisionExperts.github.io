@@ -62,7 +62,7 @@
     submitBtn.disabled = true;
 
     /* 
-        FIX: Force Session Persistence to resolve FIRST. 
+       🛑 FIX: Force Session Persistence to resolve FIRST. 
        This blocks local data caching and guarantees cross-computer safety.
     */
     setPersistence(auth, browserSessionPersistence)
