@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Counter-Strike 1.0 (DOS)</title>
-    <!-- Loads js-dos framework directly into this folder -->
+    <title>Counter-Strike (DOS)</title>
     <link rel="stylesheet" href="https://js-dos.com">
     <script src="https://js-dos.com"></script>
     <style>
@@ -13,7 +12,7 @@
 <body>
     <div id="dos"></div>
     <script>
-        // Runs the specific CS zip package inside this exact folder
+        // This launches the game file located in this exact folder
         Dos(document.getElementById("dos")).run("cs.zip");
     </script>
 </body>
