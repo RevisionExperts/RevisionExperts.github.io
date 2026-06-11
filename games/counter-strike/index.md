@@ -59,12 +59,12 @@
     <script type="text/javascript">
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("./mini-coi.js").then(reg => {
-        // Reloads once on first visit to apply headers
+        +       // Reloads once on first visit to apply headers
                 if (reg.active && !window.crossOriginIsolated) {
-            window.location.reload();
-        }
-    });
-}
+                    window.location.reload();
+                }
+            });
+        }       
         // Xash3D WebAssembly Engine Configuration
         var Module = {
             canvas: document.getElementById('canvas'),
