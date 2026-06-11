@@ -34,8 +34,8 @@
 </div>
 
 <script type="module">
-  import { initializeApp } from "www.gstatic.com";
-  import { getAuth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "www.gstatic.com";
+import { initializeApp } from "https://gstatic.com";
+import { getAuth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://gstatic.com";
 
   const firebaseConfig = {
     apiKey: "AIzaSyARmMn5vR0v_Kse2iR_eRKNCbEZow2vScs",
