@@ -1,10 +1,6 @@
 # _Login_
 <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 
-<!-- LOAD FIREBASE COMPAT STYLES AND SCRIPTS (Bypasses Javascript Imports Completely) -->
-<script src="https://gstatic.com"></script>
-<script src="https://gstatic.com"></script>
-
 <div id="arcade-page" markdown="1">
 
 {% include arcade_sidebar.html %}
@@ -38,7 +34,6 @@
 </div>
 
 <script>
-  // 1. Your personal config object remains exactly the same
   const firebaseConfig = {
     apiKey: "AIzaSyARmMn5vR0v_Kse2iR_eRKNCbEZow2vScs",
     authDomain: "://firebaseapp.com",
@@ -49,7 +44,6 @@
     measurementId: "G-6VGZ4M1DHL"
   };
 
-  // 2. Initialize using the safe global Compat configuration layer
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
@@ -93,7 +87,6 @@
     submitBtn.innerText = "Processing Auth Script...";
     submitBtn.disabled = true;
 
-    // Safe Compat session setup
     auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
       .then(() => {
         if (isLoginMode) {
