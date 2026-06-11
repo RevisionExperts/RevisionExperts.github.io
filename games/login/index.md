@@ -1,6 +1,10 @@
 # _Login_
 <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 
+<!-- LOAD FIREBASE COMPAT STYLES AND SCRIPTS (Bypasses Javascript Imports Completely) -->
+<script src="https://gstatic.com"></script>
+<script src="https://gstatic.com"></script>
+
 <div id="arcade-page" markdown="1">
 
 {% include arcade_sidebar.html %}
@@ -33,10 +37,8 @@
 
 </div>
 
-<script type="module">
-import { initializeApp } from "https://cloudflare.com";
-import { getAuth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://cloudflare.com";
-
+<script>
+  // 1. Your personal config object remains exactly the same
   const firebaseConfig = {
     apiKey: "AIzaSyARmMn5vR0v_Kse2iR_eRKNCbEZow2vScs",
     authDomain: "://firebaseapp.com",
@@ -47,8 +49,9 @@ import { getAuth, setPersistence, browserSessionPersistence, signInWithEmailAndP
     measurementId: "G-6VGZ4M1DHL"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+  // 2. Initialize using the safe global Compat configuration layer
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
 
   const usernameInput = document.getElementById("auth-username");
   const passwordInput = document.getElementById("auth-password");
@@ -86,24 +89,30 @@ import { getAuth, setPersistence, browserSessionPersistence, signInWithEmailAndP
       return;
     }
 
-    const dummyEmail = `${rawUsername.toLowerCase()}@arcade.local`;
+    const dummyEmail = rawUsername.toLowerCase() + "@arcade.local";
     submitBtn.innerText = "Processing Auth Script...";
     submitBtn.disabled = true;
 
-    setPersistence(auth, browserSessionPersistence)
-      .then(async () => {
+    // Safe Compat session setup
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+      .then(() => {
         if (isLoginMode) {
-          await signInWithEmailAndPassword(auth, dummyEmail, password);
+          return auth.signInWithEmailAndPassword(dummyEmail, password);
+        } else {
+          return auth.createUserWithEmailAndPassword(dummyEmail, password);
+        }
+      })
+      .then(() => {
+        if (isLoginMode) {
           alert("Authorization Successful! Welcome back.");
         } else {
-          await createUserWithEmailAndPassword(auth, dummyEmail, password);
           alert("Account Successfully Created! Welcome aboard.");
         }
         window.location.href = "/games/";
       })
       .catch((error) => {
         let cleanMessage = error.message;
-        if (error.code === "auth/invalid-credential") {
+        if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/user-not-found") {
           cleanMessage = "Incorrect username or secret password.";
         } else if (error.code === "auth/email-already-in-use") {
           cleanMessage = "This username is already taken by another player.";
