@@ -78,7 +78,7 @@
                 if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
                 if (text === Module.setStatus.last.text) return;
                 
-                var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+                var m = text.match(/([^]+)\((\d+(\.\d+)?)\/(\d+)\)/);
                 var statusElement = document.getElementById('status');
                 var spinnerElement = document.getElementById('spinner');
                 
