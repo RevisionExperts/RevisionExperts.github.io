@@ -1,9 +1,3 @@
-<link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
-
-<div id="arcade-page" markdown="1">
-
-{% include arcade_sidebar.html %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +7,7 @@
     <style>
         body {
             margin: 0;
-            background-color: #111;
+            background-color: #0b0c0d;
             color: #fff;
             font-family: Arial, sans-serif;
             display: flex;
@@ -27,26 +21,30 @@
             position: absolute;
             text-align: center;
             z-index: 10;
-            width: 300px;
+            width: 320px;
         }
         #status {
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             font-size: 14px;
-            color: #aaa;
+            color: #ffa500;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         .progress-track {
             width: 100%;
-            height: 20px;
-            background-color: #222;
-            border-radius: 10px;
+            height: 12px;
+            background-color: #1a1c1e;
+            border-radius: 6px;
             overflow: hidden;
-            border: 1px solid #444;
+            border: 1px solid #333;
         }
         .progress-fill {
             width: 0%;
             height: 100%;
-            background: linear-gradient(90deg, #ff6600, #ff9900);
-            transition: width 0.1s ease-out;
+            background: linear-gradient(90deg, #ff4500, #ff8c00);
+            box-shadow: 0 0 10px #ff4500;
+            transition: width 0.1s linear;
         }
         canvas {
             width: 100vw;
@@ -58,20 +56,20 @@
 </head>
 <body>
 
-    <!-- 1. The Dynamic Graphical Loading Interface -->
     <div id="loader-container">
-        <div id="status">Bypassing security restrictions...</div>
+        <div id="status">Connecting to MediaFire Cloud Node...</div>
         <div class="progress-track">
             <div id="progress-bar" class="progress-fill"></div>
         </div>
     </div>
 
-    <!-- 2. The Game Execution Canvas -->
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
-    <!-- 3. Self-Contained Header Generation Bypass Script -->
     <script type="text/javascript">
-        // This block auto-creates a service worker out of thin air to unblock SharedArrayBuffer
+        // ⚠️ PASTE YOUR DIRECT MEDIAFIRE DOWNLOAD URL BETWEEN THE QUOTES BELOW:
+        var MEDIAFIRE_URL = "https://download1979.mediafire.com/k9pzyic88kog2mBlVxBZHvnqng0zG4HsHvNPgwBimeo9JhW5CJB34ydLVjdQdwYkFiENwizwo3uMkYQ_1O1XfUw3MvtOpWolNVtcNu_hPQea_IPpmPIo_7DEaCCXkVoahfKKBx8tj_I64F8mlzsdUYwDbiwKheHWZ3JvQcu3YlRR/izel62cmmqhgx50/cstrike.zip";
+
+        // Self-contained Service Worker header unblocker
         if ('serviceWorker' in navigator) {
             const swCode = `
                 self.addEventListener('install', () => self.skipWaiting());
@@ -97,13 +95,14 @@
             });
         }
 
-        // 4. Core Game Engine Parameters
+        // WebAssembly Core Game Variable Configurations
         var Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log,
             printErr: console.error,
             
+            // Drives the visual loading bar percentages using the data download stream
             setStatus: function(text) {
                 var statusElement = document.getElementById('status');
                 var progressBar = document.getElementById('progress-bar');
@@ -115,10 +114,10 @@
                     var totalSteps = parseFloat(match[4]);
                     var percentage = Math.round((currentStep / totalSteps) * 100);
                     
-                    statusElement.innerHTML = "Downloading engine assets... (" + percentage + "%)";
+                    statusElement.innerHTML = "Downloading Full Game Assets... " + percentage + "%";
                     progressBar.style.width = percentage + "%";
                 } else {
-                    statusElement.innerHTML = text || "Unpacking internal file tables...";
+                    statusElement.innerHTML = text || "Extracting folder matrix...";
                 }
                 
                 if (!text) {
@@ -126,11 +125,15 @@
                     document.getElementById('canvas').style.display = 'block';
                 }
             },
+            
+            // Automatically pulls the massive zip from MediaFire and creates a virtual system drive
+            preRun: [function() {
+                Module.FS_createPreloadedFile('/', 'cstrike.zip', MEDIAFIRE_URL, true, false);
+            }],
             locateFile: function(path) { return path; }
         };
     </script>
     
-    <!-- 5. Initialize Engine Assembly -->
     <script async src="xash.js"></script>
 </body>
 </html>
