@@ -3,36 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Counter-Strike 1.6 - Web Client</title>
+    <title>Counter-Strike 1.6 - RevisionExperts</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; background-color: #111; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; color: #fff; }
-        .setup-container { text-align: center; max-width: 500px; padding: 20px; border: 2px solid #de9b35; background: #1c1d20; border-radius: 8px; }
-        h2 { color: #de9b35; margin-bottom: 15px; }
-        p { margin-bottom: 20px; font-size: 14px; line-height: 1.5; color: #ccc; }
-        .btn { display: inline-block; background: #de9b35; color: #fff; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 4px; transition: transform 0.1s; }
-        .btn:hover { background: #f3aa3c; transform: scale(1.02); }
-        .btn-alt { background: #3a3f44; margin-top: 10px; font-size: 12px; }
-        .btn-alt:hover { background: #4e545a; }
+        body {
+            margin: 0;
+            background-color: #111;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #status-container {
+            position: absolute;
+            text-align: center;
+            z-index: 10;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border-left-color: #ff9900;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            background-color: #000;
+        }
     </style>
 </head>
 <body>
 
-    <div class="setup-container">
-        <h2>Counter-Strike 1.6 Web Terminal</h2>
-        <p>
-            Due to browser security protocols (Cloudflare Anti-Bot tracking), high-performance 3D action environments cannot deploy natively inside third-party website windows.
-        </p>
-        <!-- Launch the full instance directly safely in a parent tab frame -->
-        <a href="https://play-cs.com" target="_blank" rel="noopener noreferrer" class="btn">
-            Launch Full Screen Game Client
-        </a>
-        <br>
-        <a href="https://github.io" class="btn btn-alt">
-            Return to Homepage
-        </a>
+    <div id="status-container">
+        <div class="spinner" id="spinner"></div>
+        <div id="status">Loading GoldSrc Engine Assets...</div>
     </div>
 
+    <!-- The Canvas where the game renders -->
+    <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+
+    <script type="text/javascript">
+        // Xash3D WebAssembly Engine Configuration
+        var Module = {
+            canvas: document.getElementById('canvas'),
+            // Set engine arguments (runs the cstrike mod)
+            arguments: ['-game', 'cstrike', '-nostartup'],
+            print: console.log,
+            printErr: console.error,
+            
+            // Track and display loading progress
+            setStatus: function(text) {
+                if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+                if (text === Module.setStatus.last.text) return;
+                
+                var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+                var statusElement = document.getElementById('status');
+                var spinnerElement = document.getElementById('spinner');
+                
+                if (m) {
+                    text = m[1] + '(' + m[2] + '/' + m[4] + ')';
+                }
+                
+                if (!text) {
+                    // Hide loading items, show the canvas game view
+                    statusElement.style.display = 'none';
+                    spinnerElement.style.display = 'none';
+                    document.getElementById('canvas').style.display = 'block';
+                } else {
+                    statusElement.innerHTML = text;
+                }
+            },
+            
+            // Point the engine to look inside your folder directory tree
+            locateFile: function(path) {
+                return path;
+            }
+        };
+
+        // Fallback catch if the user's browser blocks SharedArrayBuffer
+        if (!window.SharedArrayBuffer) {
+            document.getElementById('status').innerHTML = 
+                "<b style='color:red;'>Error:</b> Your browser blocks SharedArrayBuffer.<br>GitHub Pages lacks cross-origin isolation headers required for multiplayer mods.";
+            document.getElementById('spinner').style.display = 'none';
+        }
+    </script>
+    
+    <!-- Core game engine compilation hooks -->
+    <script async src="xash.js"></script>
 </body>
 </html>
-
