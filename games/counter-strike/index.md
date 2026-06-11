@@ -58,13 +58,14 @@
 
     <script type="text/javascript">
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("./mini-coi.js").then(reg => {
-        +       // Reloads once on first visit to apply headers
+            // Adding a timestamp ensures the browser pulls the fresh script from the server
+            navigator.serviceWorker.register("./mini-coi.js?v=" + Date.now()).then(reg => {
+                reg.update(); // Explicitly forces the service worker to update right now
                 if (reg.active && !window.crossOriginIsolated) {
-                    window.location.reload();
+                    window.location.reload(); 
                 }
             });
-        }       
+        }   
         // Xash3D WebAssembly Engine Configuration
         var Module = {
             canvas: document.getElementById('canvas'),
