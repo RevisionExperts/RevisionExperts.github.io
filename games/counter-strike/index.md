@@ -23,21 +23,39 @@
             height: 100vh;
             overflow: hidden;
         }
-        #status-container {
+        
+        /* The main container holding the loader interface */
+        #loader-container {
             position: absolute;
             text-align: center;
             z-index: 10;
+            width: 300px;
         }
-        .spinner {
-            border: 4px solid rgba(255,255,255,0.1);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border-left-color: #ff9900;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+
+        #status {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #aaa;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* The empty gray background track of the progress bar */
+        .progress-track {
+            width: 100%;
+            height: 20px;
+            background-color: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+
+        /* The active orange bar that dynamically expands across the track */
+        .progress-fill {
+            width: 0%; /* Driven dynamically by JavaScript percentages */
+            height: 100%;
+            background: linear-gradient(90deg, #ff6600, #ff9900);
+            transition: width 0.1s ease-out; /* Keeps animation tracking perfectly smooth */
+        }
+
         canvas {
             width: 100vw;
             height: 100vh;
@@ -48,70 +66,70 @@
 </head>
 <body>
 
-    <div id="status-container">
-        <div class="spinner" id="spinner"></div>
-        <div id="status">Loading GoldSrc Engine Assets...</div>
+    <div id="loader-container">
+        <div id="status">Preparing engine environment...</div>
+        <div class="progress-track">
+            <div id="progress-bar" class="progress-fill"></div>
+        </div>
     </div>
 
     <!-- The Canvas where the game renders -->
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
+        // Register the service worker to bypass the GitHub security block
         if ("serviceWorker" in navigator) {
-            // Adding a timestamp ensures the browser pulls the fresh script from the server
             navigator.serviceWorker.register("./mini-coi.js?v=" + Date.now()).then(reg => {
-                reg.update(); // Explicitly forces the service worker to update right now
+                reg.update();
                 if (reg.active && !window.crossOriginIsolated) {
                     window.location.reload(); 
                 }
             });
-        }   
-        // Xash3D WebAssembly Engine Configuration
+        }
+
+        // Xash3D WebAssembly Engine Hook Configurations
         var Module = {
             canvas: document.getElementById('canvas'),
-            // Set engine arguments (runs the cstrike mod)
             arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log,
             printErr: console.error,
             
-            // Track and display loading progress
+            // This function listens to real-time loading updates from xash.js
             setStatus: function(text) {
-                if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-                if (text === Module.setStatus.last.text) return;
-                
-                var m = text.match(/([^]+)\((\d+(\.\d+)?)\/(\d+)\)/);
                 var statusElement = document.getElementById('status');
-                var spinnerElement = document.getElementById('spinner');
+                var progressBar = document.getElementById('progress-bar');
+                var loaderContainer = document.getElementById('loader-container');
                 
-                if (m) {
-                    text = m[1] + '(' + m[2] + '/' + m[4] + ')';
+                // Emscripten formatting string match: e.g., "Downloading data (15/450)"
+                var match = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+                
+                if (match) {
+                    var currentStep = parseFloat(match[2]);
+                    var totalSteps = parseFloat(match[4]);
+                    
+                    // Calculate current loading progress out of 100%
+                    var percentage = Math.round((currentStep / totalSteps) * 100);
+                    
+                    // Dynamically push progress to screen text and layout width
+                    statusElement.innerHTML = match[1] + " (" + percentage + "%)";
+                    progressBar.style.width = percentage + "%";
+                } else {
+                    // Update text if it's just raw information sentences
+                    statusElement.innerHTML = text || "Launching engine modules...";
                 }
                 
+                // If there is no text left to display, it means the loading is 100% done
                 if (!text) {
-                    // Hide loading items, show the canvas game view
-                    statusElement.style.display = 'none';
-                    spinnerElement.style.display = 'none';
-                    document.getElementById('canvas').style.display = 'block';
-                } else {
-                    statusElement.innerHTML = text;
+                    loaderContainer.style.display = 'none'; // Hide the progress bar panel
+                    document.getElementById('canvas').style.display = 'block'; // Show game canvas
                 }
             },
-            
-            // Point the engine to look inside your folder directory tree
             locateFile: function(path) {
                 return path;
             }
         };
-
-        // Fallback catch if the user's browser blocks SharedArrayBuffer
-        if (!window.SharedArrayBuffer) {
-            document.getElementById('status').innerHTML = 
-                "<b style='color:red;'>Error:</b> Your browser blocks SharedArrayBuffer.<br>GitHub Pages lacks cross-origin isolation headers required for multiplayer mods.";
-            document.getElementById('spinner').style.display = 'none';
-        }
     </script>
     
-    <!-- Core game engine compilation hooks -->
     <script async src="xash.js"></script>
 </body>
 </html>
