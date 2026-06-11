@@ -10,5 +10,4 @@
 <br>
 <br>
 ## Shibas Roadmap
-![](assets/images/shiba_roadMap.png)
-
+<img src="assets/images/shiba_roadMap.png" alt="" />
