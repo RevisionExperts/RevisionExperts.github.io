@@ -12,7 +12,6 @@
         .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4500, #ff8c00); box-shadow: 0 0 10px #ff4500; transition: width 0.1s linear; }
         canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
     </style>
-    <!-- NO EXTERNAL JAVASCRIPT LINKS - ENTIRE FILE IS NATIVE -->
 </head>
 <body>
 
@@ -21,10 +20,10 @@
         <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
     </div>
 
-    <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <!-- Added direct focus activation click events -->
+    <canvas id="canvas" onclick="window.focus(); this.focus();" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
-        // Self-contained loop to force-enable cross-origin thread parameters
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
             if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
@@ -40,7 +39,6 @@
             }
         };
 
-        // INLINE DECOMPRESSION ENGINE: Unpacks data files natively without external jszip files
         async function unpackGameArchive(buffer) {
             const statusElement = document.getElementById('status');
             statusElement.innerHTML = "Mounting local game system...";
@@ -48,18 +46,22 @@
             let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || null);
             
             try {
-                // Creates a virtual file storage point directly inside the WebAssembly system drive
                 fs.createDataFile('/', 'cstrike.zip', buffer, true, true);
                 console.log("Archive successfully mounted.");
             } catch (e) {
                 console.error("Mount error:", e);
             }
             
+            // Hides the loading elements and wakes up the main canvas window
             document.getElementById('loader-container').style.display = 'none';
-            document.getElementById('canvas').style.display = 'block';
+            const gameCanvas = document.getElementById('canvas');
+            gameCanvas.style.display = 'block';
+            
+            // FORCES THE ENGINE TO ACTIVE SIGHT: Focuses screen context variables
+            gameCanvas.focus();
+            window.focus();
         }
 
-        // Asynchronous multi-stream chunk downloader
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
             const statusElement = document.getElementById('status');
@@ -99,7 +101,6 @@
                 let offset = 0;
                 for (let chunk of chunksData) { stitchedZipData.set(chunk, offset); offset += chunk.length; }
                 
-                // Inject the game core engine script tag after the data array is prepared
                 const script = document.createElement('script');
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
                 
@@ -116,3 +117,4 @@
         downloadAndStitchGame();
     </script>
 </body>
+</html>
