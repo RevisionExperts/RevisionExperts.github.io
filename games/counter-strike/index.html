@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Counter-Strike 1.6 - RevisionExperts</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; display: flex; align-items: center; justify-content: center; }
         canvas { width: 100vw; height: 100vh; display: block; background-color: #000; }
+        #loading-text { position: absolute; color: #ffa500; font-family: Arial, sans-serif; font-weight: bold; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <!-- Direct rendering viewport canvas -->
+    <div id="loading-text">Initializing Game Directories...</div>
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
@@ -20,18 +21,32 @@
             if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
 
-        // WebAssembly Core Game Parameters pointing directly to your uploaded directories
-        var Module = {
+        // WebAssembly Core Game Variable Configurations
+        window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log,
             printErr: console.error,
-            locateFile: function(path) { return path; }
+            locateFile: function(path) { return path; },
+            
+            // This hook handles hiding the text and revealing the interactive menu canvas
+            setStatus: function(text) {
+                if (!text) {
+                    var textElement = document.getElementById('loading-text');
+                    if (textElement) textElement.style.display = 'none';
+                    window.focus();
+                    document.getElementById('canvas').focus();
+                }
+            }
         };
-    </script>
-    
-    <!-- Launches the game engine compiler script natively -->
-    <script async type="module" src="xash.js"></script>
 
+        // This triggers the native engine assembly script dynamically on window load
+        window.addEventListener('load', function() {
+            const script = document.createElement('script');
+            script.async = true;
+            script.type = 'module';
+            script.src = 'xash.js';
+            document.body.appendChild(script);
+        });
+    </script>
 </body>
-</html>
