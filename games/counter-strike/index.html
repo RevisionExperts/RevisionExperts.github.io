@@ -75,10 +75,9 @@
         }
 
         var stitchedZipData = null;
-        var gameFilesLoaded = false;
 
-        // Force variables straight into global window scope so isolated modules can see them
-        window.Module = {
+        // WebAssembly Configuration Interface
+        var Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log,
@@ -89,31 +88,31 @@
                 var statusElement = document.getElementById('status');
                 if (text) {
                     statusElement.innerHTML = text;
-                } else if (gameFilesLoaded) {
+                } else if (stitchedZipData) {
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
                 }
             },
 
-            // The Mounting script hook checks both environments every 50ms
+            // Native Mounting Script: Fires exactly when the filesystem (FS) initializes
             preRun: [function() {
-                window.Module.addRunDependency('cs_load_block');
+                var statusElement = document.getElementById('status');
+                var progressBar = document.getElementById('progress-bar');
                 
-                const checkFS = setInterval(() => {
-                    // Universally catch the virtual file utility layout
-                    var fileSystemInstance = (typeof FS !== 'undefined') ? FS : (window.Module.FS || (window.FS || null));
-                    
-                    if (fileSystemInstance && fileSystemInstance.createDataFile && stitchedZipData) {
-                        clearInterval(checkFS);
-                        fileSystemInstance.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
-                        
-                        document.getElementById('status').innerHTML = "Launching Counter-Strike...";
-                        document.getElementById('progress-bar').style.width = "100%";
-                        gameFilesLoaded = true;
-                        
-                        window.Module.removeRunDependency('cs_load_block');
+                statusElement.innerHTML = "Mounting Local Game Archives...";
+                progressBar.style.width = "99%";
+                
+                if (stitchedZipData) {
+                    // Automatically hooks into whichever variable name Emscripten gave your file system utility
+                    var fs = (typeof FS !== 'undefined') ? FS : (Module.FS || null);
+                    if (fs && fs.createDataFile) {
+                        fs.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
+                        statusElement.innerHTML = "Launching Counter-Strike...";
+                        progressBar.style.width = "100%";
+                    } else {
+                        console.error("Critical: Emscripten FileSystem module not found.");
                     }
-                }, 50);
+                }
             }]
         };
 
@@ -165,7 +164,6 @@
                 await Promise.all(downloadPromises);
                 
                 statusElement.innerHTML = "Stitching asset blocks together...";
-                progressBar.style.width = "99%";
                 
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedZipData = new Uint8Array(finalSize);
@@ -174,6 +172,13 @@
                     stitchedZipData.set(chunk, offset);
                     offset += chunk.length;
                 }
+                
+                // DELAYED TRIGGER: Dynamically injects xash.js ONLY after stitching is completely finished
+                const script = document.createElement('script');
+                script.async = true;
+                script.type = 'module';
+                script.src = 'xash.js';
+                document.body.appendChild(script);
                 
             } catch (err) {
                 statusElement.innerHTML = "FILE TRANSFER ERROR";
@@ -184,7 +189,5 @@
 
         downloadAndStitchGame();
     </script>
-    
-    <script async type="module" src="xash.js"></script>
 </body>
 </html>
