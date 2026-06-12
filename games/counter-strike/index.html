@@ -44,7 +44,7 @@
             height: 100%;
             background: linear-gradient(90deg, #ff4500, #ff8c00);
             box-shadow: 0 0 10px #ff4500;
-            transition: width 0.2s ease;
+            transition: width 0.1s linear;
         }
         canvas {
             width: 100vw;
@@ -76,10 +76,10 @@
 
         var stitchedZipData = null;
 
-        // WebAssembly Configuration Interface
-        var Module = {
+        // Define Module parameters BEFORE xash.js runs to ensure perfect memory alignment
+        window.Module = {
             canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup', 'mpackage', 'cstrike.zip'],
+            arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log,
             printErr: console.error,
             locateFile: function(path) { return path; },
@@ -94,29 +94,19 @@
                 }
             },
 
-            // Native Mounting Script: Fires exactly when the filesystem (FS) initializes
+            // This fires the exact millisecond the WebAssembly filesystem loads
             preRun: [function() {
-                var statusElement = document.getElementById('status');
-                var progressBar = document.getElementById('progress-bar');
-                
-                statusElement.innerHTML = "Mounting Local Game Archives...";
-                progressBar.style.width = "99%";
-                
                 if (stitchedZipData) {
-                    // Automatically hooks into whichever variable name Emscripten gave your file system utility
-                    var fs = (typeof FS !== 'undefined') ? FS : (Module.FS || null);
+                    var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || null);
                     if (fs && fs.createDataFile) {
                         fs.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
-                        statusElement.innerHTML = "Launching Counter-Strike...";
-                        progressBar.style.width = "100%";
-                    } else {
-                        console.error("Critical: Emscripten FileSystem module not found.");
+                        console.log("Game assets successfully mounted.");
                     }
                 }
             }]
         };
 
-        // THE ASYNCHRONOUS STITCHER
+        // Asynchronous multi-stream downloader
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
             const statusElement = document.getElementById('status');
@@ -152,11 +142,11 @@
                                 chunksData[index] = new Uint8Array(xhr.response);
                                 resolve();
                             } else {
-                                reject("Failed to fetch chunk.");
+                                reject();
                             }
                         };
                         
-                        xhr.onerror = () => reject("Network error.");
+                        xhr.onerror = () => reject();
                         xhr.send(null);
                     });
                 });
@@ -164,7 +154,9 @@
                 await Promise.all(downloadPromises);
                 
                 statusElement.innerHTML = "Stitching asset blocks together...";
+                progressBar.style.width = "99%";
                 
+                // Glue the array fragments back into a single file payload
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedZipData = new Uint8Array(finalSize);
                 let offset = 0;
@@ -173,7 +165,10 @@
                     offset += chunk.length;
                 }
                 
-                // DELAYED TRIGGER: Dynamically injects xash.js ONLY after stitching is completely finished
+                statusElement.innerHTML = "Launching Counter-Strike...";
+                progressBar.style.width = "100%";
+                
+                // TRIGGER ENGINE: Now safely launch xash.js since the file array is 100% complete
                 const script = document.createElement('script');
                 script.async = true;
                 script.type = 'module';
@@ -181,9 +176,8 @@
                 document.body.appendChild(script);
                 
             } catch (err) {
-                statusElement.innerHTML = "FILE TRANSFER ERROR";
+                statusElement.innerHTML = "FILE CORRUPTION ERROR";
                 statusElement.style.color = "#ff0000";
-                console.error(err);
             }
         }
 
