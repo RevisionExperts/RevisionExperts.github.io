@@ -16,7 +16,6 @@
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
-        // Direct browser injection loop for cross-origin multi-threading parameters
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
             if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
@@ -37,22 +36,26 @@
                 }
             },
 
-            // THE NATIVE NETWORK LOADER: Dynamically streams your loose repository files on demand
+            // AUTO-MAPPING INTERFACE: Scans and mounts common asset layouts on boot
             preRun: [function() {
                 var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
                 if (fs) {
                     try {
-                        // Create the core folder structure inside the WebAssembly RAM drive
+                        // Rebuild core system asset trees inside WebAssembly RAM allocation layout
                         fs.createFolder('/', 'cstrike', true, true);
                         fs.createFolder('/', 'valve', true, true);
                         
-                        // Overrides the file reader to pull your loose folder assets straight from your URL paths
+                        // Force-inject key target engine map hooks natively from your loose directory folders
                         fs.createLazyFile('/cstrike', 'liblist.gam', 'cstrike/liblist.gam', true, false);
                         fs.createLazyFile('/valve', 'liblist.gam', 'valve/liblist.gam', true, false);
                         
-                        console.log("Loose folder lazy network allocation successful.");
+                        // Tells the reader to load core game menu assets on demand from the repository paths
+                        fs.createLazyFile('/cstrike', 'game.cfg', 'cstrike/game.cfg', true, false);
+                        fs.createLazyFile('/valve', 'valve.rc', 'valve/valve.rc', true, false);
+                        
+                        console.log("Virtual file allocation tree successfully mapped.");
                     } catch (e) {
-                        console.error(e);
+                        console.error("Directory collision override:", e);
                     }
                 }
             }]
