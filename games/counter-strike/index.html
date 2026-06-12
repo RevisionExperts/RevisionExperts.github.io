@@ -77,8 +77,8 @@
         var stitchedZipData = null;
         var gameFilesLoaded = false;
 
-        // WebAssembly Core Parameters
-        var Module = {
+        // Force variables straight into global window scope so isolated modules can see them
+        window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log,
@@ -95,12 +95,14 @@
                 }
             },
 
-            // This ensures our runtime file is injected into whichever variable handles the FS environment
+            // The Mounting script hook checks both environments every 50ms
             preRun: [function() {
-                Module.addRunDependency('cs_load_block');
+                window.Module.addRunDependency('cs_load_block');
                 
                 const checkFS = setInterval(() => {
-                    var fileSystemInstance = (typeof FS !== 'undefined') ? FS : (Module.FS || null);
+                    // Universally catch the virtual file utility layout
+                    var fileSystemInstance = (typeof FS !== 'undefined') ? FS : (window.Module.FS || (window.FS || null));
+                    
                     if (fileSystemInstance && fileSystemInstance.createDataFile && stitchedZipData) {
                         clearInterval(checkFS);
                         fileSystemInstance.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
@@ -109,8 +111,7 @@
                         document.getElementById('progress-bar').style.width = "100%";
                         gameFilesLoaded = true;
                         
-                        // Clear the lock and boot the engine
-                        Module.removeRunDependency('cs_load_block');
+                        window.Module.removeRunDependency('cs_load_block');
                     }
                 }, 50);
             }]
@@ -166,7 +167,6 @@
                 statusElement.innerHTML = "Stitching asset blocks together...";
                 progressBar.style.width = "99%";
                 
-                // Combine chunks into the container variable immediately
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedZipData = new Uint8Array(finalSize);
                 let offset = 0;
@@ -182,11 +182,9 @@
             }
         }
 
-        // Kick off chunk downloads immediately on load
         downloadAndStitchGame();
     </script>
     
-    <!-- Restoring the native engine script module container element -->
     <script async type="module" src="xash.js"></script>
 </body>
 </html>
