@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -23,14 +23,13 @@
     <canvas id="canvas" onclick="window.focus(); this.focus();" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
-        // Direct browser injection loop for cross-origin multi-threading parameters
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
             if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
 
         var stitchedZipData = null;
 
-        // WebAssembly Core Game Variable Configurations
+        // Force Global Module Initialization parameters
         window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup', '-mpackage', 'cstrike.zip'],
@@ -45,31 +44,27 @@
                     document.getElementById('canvas').focus();
                 }
             },
-            // Native preRun hook forces injection the exact microsecond the engine filesystem turns on
             preRun: [function() {
                 if (stitchedZipData) {
-                    console.log("Injecting virtual file allocation table...");
-                    
-                    // Automatically looks up the core engine filesystem module variables
-                    var fs = (typeof FS !== 'undefined') ? FS : 
-                             (window.Module && window.Module.FS ? window.Module.FS : 
-                             (window.FS ? window.FS : null));
-                             
+                    var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
                     if (fs && fs.createDataFile) {
                         try {
-                            // Mounts your combined file stream cleanly into both standard engine pathways
                             fs.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
                             fs.createDataFile('/home/web_user/', 'cstrike.zip', stitchedZipData, true, false);
-                            console.log("Virtual data matrix successfully loaded.");
-                        } catch (e) {
-                            console.error("Mount bypass block override:", e);
-                        }
+                        } catch (e) { console.error(e); }
                     }
                 }
-            }]
+            }],
+            // BOOT TRIGGER ACTION: Forces the main code module loop to jump to life
+            onRuntimeInitialized: function() {
+                console.log("Runtime engine fully balanced.");
+                document.getElementById('loader-container').style.display = 'none';
+                document.getElementById('canvas').style.display = 'block';
+                window.focus();
+                document.getElementById('canvas').focus();
+            }
         };
 
-        // Asynchronous multi-stream chunk downloader
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
             const statusElement = document.getElementById('status');
@@ -112,7 +107,7 @@
                 statusElement.innerHTML = "Launching Counter-Strike Engine...";
                 progressBar.style.width = "100%";
 
-                // Execute your original engine file scripts dynamically now that data arrays are balanced
+                // Inject and fire the runtime engine file directly
                 const script = document.createElement('script');
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
                 document.body.appendChild(script);
