@@ -17,7 +17,7 @@
 <body>
 
     <div id="loader-container">
-        <div id="status">Streaming Engine Pipeline...</div>
+        <div id="status">Streaming Game Engine...</div>
         <div id="data-counter">Initializing Asset Matrix...</div>
         <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
     </div>
@@ -29,76 +29,92 @@
             if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
 
-        // Universal bytes formatter for clean KB/MB readout calculation display
-        function formatBytes(bytes) {
-            if (bytes === 0) return '0 KB';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
+        var stitchedPakData = null;
 
         window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
-            print: console.log,
-            printErr: console.error,
-            locateFile: function(path) { return path; },
+            print: console.log, printErr: console.error, locateFile: function(path) { return path; },
             
             setStatus: function(text) {
-                var statusElement = document.getElementById('status');
-                var progressBar = document.getElementById('progress-bar');
-                var counterElement = document.getElementById('data-counter');
-                
-                if (text) {
-                    statusElement.innerHTML = text;
-                    
-                    // Natively capture WebAssembly compile steps to drive the percentage slider tracker bar
-                    var match = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-                    if (match) {
-                        var curr = parseFloat(match[2]);
-                        var total = parseFloat(match[4]);
-                        var pct = Math.round((curr / total) * 100);
-                        progressBar.style.width = pct + "%";
-                        counterElement.innerHTML = formatBytes(curr) + " / " + formatBytes(total);
-                    }
-                } else {
+                if (!text && stitchedPakData) {
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
-                    window.focus();
-                    document.getElementById('canvas').focus();
+                    window.focus(); document.getElementById('canvas').focus();
                 }
             },
 
             preRun: [function() {
-                var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
-                if (fs) {
-                    try {
-                        fs.createFolder('/', 'cstrike', true, true);
-                        fs.createFolder('/', 'valve', true, true);
-                        
-                        // Link virtual directories straight to your loose repository folders
-                        fs.createLazyFile('/cstrike', 'liblist.gam', 'cstrike/liblist.gam', true, false);
-                        fs.createLazyFile('/valve', 'liblist.gam', 'valve/liblist.gam', true, false);
-                        fs.createLazyFile('/cstrike', 'game.cfg', 'cstrike/game.cfg', true, false);
-                        fs.createLazyFile('/valve', 'valve.rc', 'valve/valve.rc', true, false);
-                    } catch (e) { console.error(e); }
+                if (stitchedPakData) {
+                    var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
+                    if (fs && fs.createDataFile) {
+                        try {
+                            fs.createFolder('/', 'cstrike', true, true);
+                            fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
+                            console.log("Game pak file tree mounted successfully.");
+                        } catch (e) { console.error(e); }
+                    }
                 }
             }]
         };
 
-        // DIRECT UN-THROTTLED LAUNCH TRIGGER SEQUENCE
-        window.addEventListener('load', function() {
-            document.getElementById('status').innerHTML = "Compiling Engine Modules...";
-            document.getElementById('progress-bar').style.width = "25%";
-            document.getElementById('data-counter').innerHTML = "Reading local script bundles...";
+        // THE SEQUENTIAL CHUNK STITCHER: Pulls your local pieces and glues them back together
+        async function loadGamePackage() {
+            const parts = ['cstrike.pak.2', 'cstrike.pak.3', 'cstrike.pak.4', 'cstrike.pak.5', 'cstrike.pak.6'];
+            const statusElement = document.getElementById('status');
+            const progressBar = document.getElementById('progress-bar');
+            const counterElement = document.getElementById('data-counter');
+            let chunksData = [];
+            
+            try {
+                for (let i = 0; i < parts.length; i++) {
+                    await new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', parts[i], true);
+                        xhr.responseType = 'arraybuffer';
+                        
+                        xhr.onprogress = function(e) {
+                            if (e.lengthComputable) {
+                                let basePct = (i / parts.length) * 100;
+                                let chunkPct = (e.loaded / e.total) * (100 / parts.length);
+                                let totalPct = Math.min(Math.round(basePct + chunkPct), 99);
+                                
+                                statusElement.innerHTML = "Streaming Game Chunks... " + totalPct + "%";
+                                counterElement.innerHTML = "Downloading component " + (i + 2) + " of 5";
+                                progressBar.style.width = totalPct + "%";
+                            }
+                        };
+                        
+                        xhr.onload = function() {
+                            if (xhr.status === 200) {
+                                chunksData[i] = new Uint8Array(xhr.response);
+                                resolve();
+                            } else { reject(); }
+                        };
+                        xhr.onerror = () => reject();
+                        xhr.send(null);
+                    });
+                }
+                
+                statusElement.innerHTML = "Stitching asset blocks together...";
+                progressBar.style.width = "99%";
+                
+                const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
+                stitchedPakData = new Uint8Array(finalSize);
+                let offset = 0;
+                for (let chunk of chunksData) { stitchedPakData.set(chunk, offset); offset += chunk.length; }
+                
+                statusElement.innerHTML = "Launching Counter-Strike Engine...";
+                progressBar.style.width = "100wn%";
+                
+                const script = document.createElement('script');
+                script.async = true; script.type = 'module'; script.src = 'xash.js';
+                document.body.appendChild(script);
+                
+            } catch (err) { statusElement.innerHTML = "TRANSFER FAULT - TRY REFRESHING"; }
+        }
 
-            const script = document.createElement('script');
-            script.async = true;
-            script.type = 'module';
-            script.src = 'xash.js'; // Boots directly via native tag mapping format
-            document.body.appendChild(script);
-        });
+        window.addEventListener('load', loadGamePackage);
     </script>
 </body>
 </html>
