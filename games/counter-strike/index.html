@@ -12,6 +12,8 @@
         .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4500, #ff8c00); box-shadow: 0 0 10px #ff4500; transition: width 0.1s linear; }
         canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
     </style>
+    <!-- Inject safe, unblocked unzipping engine natively from backup CDN node -->
+    <script src="https://cloudflare.com" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -28,42 +30,64 @@
         }
 
         var stitchedZipData = null;
+        var gameFilesReady = false;
 
-        // Force Global Module Initialization parameters
+        // Initialize WebAssembly environment parameters
         window.Module = {
             canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup', '-mpackage', 'cstrike.zip'],
+            arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log, printErr: console.error, locateFile: function(path) { return path; },
             setStatus: function(text) {
                 if (text) {
                     document.getElementById('status').innerHTML = text;
-                } else if (stitchedZipData) {
+                } else if (gameFilesReady) {
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
-                    window.focus();
-                    document.getElementById('canvas').focus();
+                    window.focus(); document.getElementById('canvas').focus();
                 }
-            },
-            preRun: [function() {
-                if (stitchedZipData) {
-                    var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
-                    if (fs && fs.createDataFile) {
-                        try {
-                            fs.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
-                            fs.createDataFile('/home/web_user/', 'cstrike.zip', stitchedZipData, true, false);
-                        } catch (e) { console.error(e); }
-                    }
-                }
-            }],
-            // BOOT TRIGGER ACTION: Forces the main code module loop to jump to life
-            onRuntimeInitialized: function() {
-                console.log("Runtime engine fully balanced.");
-                document.getElementById('loader-container').style.display = 'none';
-                document.getElementById('canvas').style.display = 'block';
-                window.focus();
-                document.getElementById('canvas').focus();
             }
         };
+
+        // AUTO-EXTRACTOR: Loops through your zipped assets and creates a real, uncompressed folder tree inside the WebAssembly RAM drive
+        async function unpackStitchedZip(arrayBuffer) {
+            const statusElement = document.getElementById('status');
+            statusElement.innerHTML = "Unpacking internal file tables...";
+            
+            try {
+                const zipInstance = new JSZip();
+                const zip = await zipInstance.loadAsync(arrayBuffer);
+                const fileNames = Object.keys(zip.files);
+                
+                // Get the core engine filesystem module
+                let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
+                
+                for (let name of fileNames) {
+                    if (!zip.files[name].dir) {
+                        const fileData = await zip.files[name].async('uint8array');
+                        const pathParts = name.split('/');
+                        let currentPath = '/';
+                        
+                        // Dynamically generate the matching folders and subfolders (cstrike/maps, valve/models, etc.)
+                        for (let i = 0; i < pathParts.length - 1; i++) {
+                            currentPath += pathParts[i] + '/';
+                            try { fs.createFolder(currentPath.slice(0, -1), pathParts[i], true, true); } catch(e){}
+                        }
+                        // Drop the loose file cleanly into its new folder destination path
+                        fs.createDataFile('/', name, fileData, true, true);
+                    }
+                }
+                
+                console.log("Virtual layout extraction complete.");
+                gameFilesReady = true;
+                document.getElementById('loader-container').style.display = 'none';
+                document.getElementById('canvas').style.display = 'block';
+                window.focus(); document.getElementById('canvas').focus();
+                
+            } catch (err) {
+                console.error("Extraction matrix block failure:", err);
+                statusElement.innerHTML = "LAUNCH ERROR - REFUSE TO EXPAND";
+            }
+        }
 
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
@@ -107,9 +131,14 @@
                 statusElement.innerHTML = "Launching Counter-Strike Engine...";
                 progressBar.style.width = "100%";
 
-                // Inject and fire the runtime engine file directly
+                // Inject the main engine script file directly
                 const script = document.createElement('script');
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
+                
+                // Once xash.js initializes, feed the memory array to the extractor loop
+                script.onload = async () => {
+                    await unpackStitchedZip(stitchedZipData.buffer);
+                };
                 document.body.appendChild(script);
                 
             } catch (err) {
