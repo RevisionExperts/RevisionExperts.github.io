@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,7 +12,7 @@
         .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4500, #ff8c00); box-shadow: 0 0 10px #ff4500; transition: width 0.1s linear; }
         canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
     </style>
-    <!-- Inject safe, unblocked unzipping engine natively from backup CDN node -->
+    <!-- Stable unzipped engine library hook -->
     <script src="https://cloudflare.com" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -32,7 +32,6 @@
         var stitchedZipData = null;
         var gameFilesReady = false;
 
-        // Initialize WebAssembly environment parameters
         window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
@@ -48,7 +47,7 @@
             }
         };
 
-        // AUTO-EXTRACTOR: Loops through your zipped assets and creates a real, uncompressed folder tree inside the WebAssembly RAM drive
+        // SMART PATH CORRECTOR ENGINE: Cleans and matches messy archive folders
         async function unpackStitchedZip(arrayBuffer) {
             const statusElement = document.getElementById('status');
             statusElement.innerHTML = "Unpacking internal file tables...";
@@ -58,33 +57,45 @@
                 const zip = await zipInstance.loadAsync(arrayBuffer);
                 const fileNames = Object.keys(zip.files);
                 
-                // Get the core engine filesystem module
                 let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
-                
+                if (!fs) {
+                    // Try waiting 100ms if the engine filesystem turns on slightly late
+                    await new Promise(r => setTimeout(r, 100));
+                    fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
+                }
+
                 for (let name of fileNames) {
                     if (!zip.files[name].dir) {
                         const fileData = await zip.files[name].async('uint8array');
-                        const pathParts = name.split('/');
+                        
+                        // FIX: Detect and strip away any master folders or root desktop directory wrappers
+                        let cleanName = name;
+                        if (cleanName.includes('cstrike/') && !cleanName.startsWith('cstrike/')) {
+                            cleanName = cleanName.substring(cleanName.indexOf('cstrike/'));
+                        } else if (cleanName.includes('valve/') && !cleanName.startsWith('valve/')) {
+                            cleanName = cleanName.substring(cleanName.indexOf('valve/'));
+                        }
+
+                        const pathParts = cleanName.split('/');
                         let currentPath = '/';
                         
-                        // Dynamically generate the matching folders and subfolders (cstrike/maps, valve/models, etc.)
+                        // Rebuild path layout structures safely inside the emulated RAM core
                         for (let i = 0; i < pathParts.length - 1; i++) {
                             currentPath += pathParts[i] + '/';
                             try { fs.createFolder(currentPath.slice(0, -1), pathParts[i], true, true); } catch(e){}
                         }
-                        // Drop the loose file cleanly into its new folder destination path
-                        fs.createDataFile('/', name, fileData, true, true);
+                        fs.createDataFile('/', cleanName, fileData, true, true);
                     }
                 }
                 
-                console.log("Virtual layout extraction complete.");
+                console.log("Extraction complete!");
                 gameFilesReady = true;
                 document.getElementById('loader-container').style.display = 'none';
                 document.getElementById('canvas').style.display = 'block';
                 window.focus(); document.getElementById('canvas').focus();
                 
             } catch (err) {
-                console.error("Extraction matrix block failure:", err);
+                console.error(err);
                 statusElement.innerHTML = "LAUNCH ERROR - REFUSE TO EXPAND";
             }
         }
@@ -131,11 +142,9 @@
                 statusElement.innerHTML = "Launching Counter-Strike Engine...";
                 progressBar.style.width = "100%";
 
-                // Inject the main engine script file directly
                 const script = document.createElement('script');
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
                 
-                // Once xash.js initializes, feed the memory array to the extractor loop
                 script.onload = async () => {
                     await unpackStitchedZip(stitchedZipData.buffer);
                 };
