@@ -57,7 +57,7 @@
 <body>
 
     <div id="loader-container">
-        <div id="status">Connecting to Local Repository... 0%</div>
+        <div id="status">Connecting to Repository... 0%</div>
         <div class="progress-track">
             <div id="progress-bar" class="progress-fill"></div>
         </div>
@@ -74,7 +74,7 @@
             }
         }
 
-        // WebAssembly Configuration Hooks
+        // WebAssembly Core Parameters
         var Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
@@ -87,34 +87,26 @@
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
                 }
-            },
-            
-            // Delays engine start until our asynchronous download function returns true
-            preRun: [function() {
-                Module.addRunDependency('fp_load');
-                downloadAndStitchGame();
-            }]
+            }
         };
 
         var gameFilesLoaded = false;
 
-        // THE ASYNCHRONOUS STITCHER: Downloads chunks concurrently without freezing the browser
+        // THE FIXED ASYNCHRONOUS STITCHER: Boots outside of preRun to prevent timing locks
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
             const statusElement = document.getElementById('status');
             const progressBar = document.getElementById('progress-bar');
             
-            // Track dynamic download tracking stats for each file chunk
             let loadedBytes = new Array(parts.length).fill(0);
             let totalBytes = new Array(parts.length).fill(0);
             let chunksData = [];
 
             try {
-                // Initialize modern asynchronous fetch operations simultaneously
                 const downloadPromises = parts.map((part, index) => {
                     return new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
-                        xhr.open('GET', part, true); // True makes it asynchronous!
+                        xhr.open('GET', part, true); 
                         xhr.responseType = 'arraybuffer';
                         
                         xhr.onprogress = function(e) {
@@ -122,12 +114,11 @@
                                 loadedBytes[index] = e.loaded;
                                 totalBytes[index] = e.total;
                                 
-                                // Calculate total mathematical progress across all 4 streams
                                 const totalLoaded = loadedBytes.reduce((a, b) => a + b, 0);
-                                const totalSize = totalBytes.reduce((a, b) => a + b, 293000000); // Fallback to ~293MB
+                                const totalSize = totalBytes.reduce((a, b) => a + b, 293000000); 
                                 const pct = Math.min(Math.round((totalLoaded / totalSize) * 100), 99);
                                 
-                                statusElement.innerHTML = "Streaming Assets... " + pct + "%";
+                                statusElement.innerHTML = "Streaming Game Chunks... " + pct + "%";
                                 progressBar.style.width = pct + "%";
                             }
                         };
@@ -137,46 +128,57 @@
                                 chunksData[index] = new Uint8Array(xhr.response);
                                 resolve();
                             } else {
-                                reject("Failed to load chunk: " + part);
+                                reject("Failed to fetch chunk.");
                             }
                         };
                         
-                        xhr.onerror = () => reject("Network connectivity error.");
+                        xhr.onerror = () => reject("Network error.");
                         xhr.send(null);
                     });
                 });
 
-                // Wait for all 4 asynchronous network operations to successfully finish
                 await Promise.all(downloadPromises);
                 
                 statusElement.innerHTML = "Stitching asset blocks together...";
                 progressBar.style.width = "99%";
                 
-                // Construct single continuous data array out of individual chunks
-                const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
-                const combinedFile = new Uint8Array(finalSize);
-                let offset = 0;
-                for (let chunk of chunksData) {
-                    combinedFile.set(chunk, offset);
-                    offset += chunk.length;
-                }
-                
-                // Mount file into the WebAssembly runtime space
-                Module.FS_createDataFile('/', 'cstrike.zip', combinedFile, true, false);
-                
-                statusElement.innerHTML = "Launching Counter-Strike...";
-                progressBar.style.width = "100%";
-                gameFilesLoaded = true;
-                
-                // Tell the engine to turn on
-                Module.removeRunDependency('fp_load');
+                // Wait for Module.FS to be defined by xash.js before creating the file
+                const checkFS = setInterval(() => {
+                    if (Module.FS && Module.FS.createDataFile) {
+                        clearInterval(checkFS);
+                        
+                        const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
+                        const combinedFile = new Uint8Array(finalSize);
+                        let offset = 0;
+                        for (let chunk of chunksData) {
+                            combinedFile.set(chunk, offset);
+                            offset += chunk.length;
+                        }
+                        
+                        // Create virtual file bundle inside WebAssembly memory space
+                        Module.FS_createDataFile('/', 'cstrike.zip', combinedFile, true, false);
+                        
+                        statusElement.innerHTML = "Launching Counter-Strike...";
+                        progressBar.style.width = "100%";
+                        gameFilesLoaded = true;
+                        
+                        // If setStatus was waiting, hide the loader immediately
+                        document.getElementById('loader-container').style.display = 'none';
+                        document.getElementById('canvas').style.display = 'block';
+                    }
+                }, 100);
                 
             } catch (err) {
-                statusElement.innerHTML = "CRITICAL LOAD ERROR";
+                statusElement.innerHTML = "FILE TRANSFER ERROR";
                 statusElement.style.color = "#ff0000";
                 console.error(err);
             }
         }
+
+        // Trigger the asynchronous download stream globally on window load
+        window.addEventListener('load', function() {
+            downloadAndStitchGame();
+        });
     </script>
     
     <script async type="module" src="xash.js"></script>
