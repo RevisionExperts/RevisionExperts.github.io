@@ -42,28 +42,25 @@
 
         window.Module = {
             canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup', '-pak', 'cstrike.pak'],
+            arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log, printErr: console.error,
-            
-            // CLEAN NATIVE RESOLUTION: Points directly to your repo folder, no external domains
-            locateFile: function(path) {
-                return path;
-            },
-            
+            locateFile: function(path) { return path; },
             setStatus: function(text) {
                 if (text && !text.includes('Running')) {
                     document.getElementById('status').innerHTML = text;
                 }
             },
+            // CLIENT PAK UNPACKER MATRIX: Mounts the raw package byte array natively on engine boot
             preRun: [function() {
                 if (stitchedPakData) {
                     var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
                     if (fs && fs.createDataFile) {
                         try {
+                            // Mounts the uncompressed array directly to the primary system virtual directories
                             fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
                             try { fs.createFolder('/', 'cstrike', true, true); } catch(e){}
                             fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
-                            console.log("Assets safely mapped locally.");
+                            console.log("Memory binary array successfully mounted to local workspace.");
                         } catch (e) { console.error(e); }
                     }
                 }
@@ -78,7 +75,7 @@
             window.focus();
             gameCanvas.focus();
 
-            // Loads your local file xash.js sitting right in your repo folder
+            // Load the engine launcher script natively out of your repo
             const script = document.createElement('script');
             script.async = true; script.type = 'module'; script.src = 'xash.js';
             document.body.appendChild(script);
@@ -96,6 +93,7 @@
                     await new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
                         xhr.open('GET', parts[i], true); xhr.responseType = 'arraybuffer';
+                        
                         xhr.onprogress = function(e) {
                             if (e.lengthComputable) {
                                 let basePct = (i / parts.length) * 100;
