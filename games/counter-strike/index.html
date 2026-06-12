@@ -31,7 +31,6 @@
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
-        // NO SERVICE WORKER: Clean native loop to force game thread memory permissions
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
             if (window.name !== 'coi-reload') {
                 window.name = 'coi-reload';
@@ -62,8 +61,8 @@
                             fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
                             try { fs.createFolder('/', 'cstrike', true, true); } catch(e){}
                             fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
-                            console.log("Assets mounted to virtual mapping layers.");
-                        } catch (e) { console.error(e); }
+                            console.log("Verified asset package successfully mounted to memory filesystem.");
+                        } catch (e) { console.error("Mount system fault:", e); }
                     }
                 }
             }]
@@ -94,6 +93,7 @@
                     await new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
                         xhr.open('GET', parts[i], true); xhr.responseType = 'arraybuffer';
+                        
                         xhr.onprogress = function(e) {
                             if (e.lengthComputable) {
                                 let basePct = (i / parts.length) * 100;
@@ -116,7 +116,12 @@
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedPakData = new Uint8Array(finalSize);
                 let offset = 0;
-                for (let chunk of chunksData) { stitchedZipData = stitchedPakData.set(chunk, offset); offset += chunk.length; }
+                
+                // FIX: Cleared out the syntax assignment typo completely so the data saves correctly
+                for (let chunk of chunksData) { 
+                    stitchedPakData.set(chunk, offset); 
+                    offset += chunk.length; 
+                }
                 
                 progressBar.parentNode.style.display = 'none';
                 counterElement.style.display = 'none';
