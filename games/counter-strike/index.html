@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,7 +12,6 @@
         .progress-track { width: 100%; height: 12px; background-color: #1a1c1e; border-radius: 6px; overflow: hidden; border: 1px solid #333; margin-bottom: 20px; }
         .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4500, #ff8c00); box-shadow: 0 0 10px #ff4500; transition: width 0.1s linear; }
         
-        /* The Manual Launch Trigger Button Interface Option Style Layout */
         #launch-btn { display: none; background: linear-gradient(90deg, #ff4500, #ff8c00); color: #fff; border: none; padding: 14px 36px; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; cursor: pointer; box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); transition: transform 0.1s ease, box-shadow 0.2s ease; margin: 0 auto; }
         #launch-btn:hover { box-shadow: 0 0 25px rgba(255, 140, 0, 0.7); transform: scale(1.03); }
         #launch-btn:active { transform: scale(0.98); }
@@ -26,34 +25,18 @@
         <div id="status">Streaming Game Engine...</div>
         <div id="data-counter">Initializing Asset Matrix...</div>
         <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
-        <!-- Launcher button sits ready hidden until 100% assembly -->
         <button id="launch-btn" onclick="startCoreGameViewport()">Launch Game</button>
     </div>
 
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
+        // NO SERVICE WORKER: Clean native loop to force game thread memory permissions
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
-            const workerCode = `
-                self.addEventListener('install', () => self.skipWaiting());
-                self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-                self.addEventListener('fetch', e => {
-                    if (e.request.cache === 'only-if-cached' && e.request.mode !== 'same-origin') return;
-                    e.respondWith(
-                        fetch(e.request).then(res => {
-                            if (res.status === 0) return res;
-                            const h = new Headers(res.headers);
-                            h.set('Cross-Origin-Opener-Policy', 'same-origin');
-                            h.set('Cross-Origin-Embedder-Policy', 'require-corp');
-                            return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
-                        })
-                    );
-                });
-            `;
-            const blob = new Blob([workerCode], { type: 'text/javascript' });
-            navigator.serviceWorker.register(URL.createObjectURL(blob)).then(() => {
-                if (window.name !== 'coi-reload') { window.name = 'coi-reload'; window.location.reload(); }
-            }).catch(err => console.error(err));
+            if (window.name !== 'coi-reload') {
+                window.name = 'coi-reload';
+                window.location.reload();
+            }
         }
 
         var stitchedPakData = null;
@@ -79,24 +62,21 @@
                             fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
                             try { fs.createFolder('/', 'cstrike', true, true); } catch(e){}
                             fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
-                            console.log("Assets mounted to virtual workspace mapping layers.");
+                            console.log("Assets mounted to virtual mapping layers.");
                         } catch (e) { console.error(e); }
                     }
                 }
             }]
         };
 
-        // Activates the game loop natively upon a clean user click context handshake
         function startCoreGameViewport() {
             document.getElementById('loader-container').style.display = 'none';
             const gameCanvas = document.getElementById('canvas');
             gameCanvas.style.display = 'block';
             
-            // Wake up script execution structures
             window.focus();
             gameCanvas.focus();
 
-            // Run the compiled engine module script now that player interaction is confirmed
             const script = document.createElement('script');
             script.async = true; script.type = 'module'; script.src = 'xash.js';
             document.body.appendChild(script);
@@ -136,9 +116,8 @@
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedPakData = new Uint8Array(finalSize);
                 let offset = 0;
-                for (let chunk of chunksData) { stitchedPakData.set(chunk, offset); offset += chunk.length; }
+                for (let chunk of chunksData) { stitchedZipData = stitchedPakData.set(chunk, offset); offset += chunk.length; }
                 
-                // HIDES METRIC BARS AND POPS UP THE OFFICIAL LAUNCH BUTTON AT 100% ASSEMBLED!
                 progressBar.parentNode.style.display = 'none';
                 counterElement.style.display = 'none';
                 statusElement.innerHTML = "Game files ready!";
