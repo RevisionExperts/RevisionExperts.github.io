@@ -33,9 +33,16 @@
 
         window.Module = {
             canvas: document.getElementById('canvas'),
-            // UNIVERSAL COMPILER FLAGS: Tells the core engine to explicitly treat the file as a raw mounted asset package archive
             arguments: ['-game', 'cstrike', '-nostartup', '-pak', 'cstrike.pak'],
-            print: console.log, printErr: console.error, locateFile: function(path) { return path; },
+            print: console.log, printErr: console.error,
+            
+            // PATH LOCK OVERRIDE: Forces the script to locate xash.wasm in your exact live games subfolder path URL
+            locateFile: function(path) {
+                if (path.endsWith('.wasm')) {
+                    return 'https://github.io' + path;
+                }
+                return path;
+            },
             
             setStatus: function(text) {
                 if (text) {
@@ -47,18 +54,16 @@
                 }
             },
 
-            // MOUNT OVERRIDE LAYER: Injects the raw file bytes globally into all potential virtual storage folders
             preRun: [function() {
                 if (stitchedPakData) {
                     var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
                     if (fs && fs.createDataFile) {
                         try {
-                            // Mounts the package directly to the root, home, and game engine folder directories simultaneously
                             fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
                             try { fs.createFolder('/', 'cstrike', true, true); } catch(e){}
                             fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
                             console.log("Package data binary injected to core file systems successfully.");
-                        } catch (e) { console.error("Mount retry fallback override:", e); }
+                        } catch (e) { console.error(e); }
                     }
                 }
             }]
