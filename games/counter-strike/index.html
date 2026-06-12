@@ -25,8 +25,31 @@
     <canvas id="canvas" onclick="window.focus(); this.focus();" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
+        // IRONCLAD SERVICE WORKER TRIGGER: Forces the browser tab to grant high-performance multi-threading execution permissions
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
-            if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
+            const workerCode = `
+                self.addEventListener('install', () => self.skipWaiting());
+                self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+                self.addEventListener('fetch', e => {
+                    if (e.request.cache === 'only-if-cached' && e.request.mode !== 'same-origin') return;
+                    e.respondWith(
+                        fetch(e.request).then(res => {
+                            if (res.status === 0) return res;
+                            const h = new Headers(res.headers);
+                            h.set('Cross-Origin-Opener-Policy', 'same-origin');
+                            h.set('Cross-Origin-Embedder-Policy', 'require-corp');
+                            return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
+                        })
+                    );
+                });
+            `;
+            const blob = new Blob([workerCode], { type: 'text/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).then(() => {
+                if (window.name !== 'coi-reload') {
+                    window.name = 'coi-reload';
+                    window.location.reload();
+                }
+            }).catch(err => console.error(err));
         }
 
         var stitchedPakData = null;
@@ -36,7 +59,6 @@
             arguments: ['-game', 'cstrike', '-nostartup', '-pak', 'cstrike.pak'],
             print: console.log, printErr: console.error,
             
-            // PATH LOCK OVERRIDE: Forces the script to locate xash.wasm in your exact live games subfolder path URL
             locateFile: function(path) {
                 if (path.endsWith('.wasm')) {
                     return 'https://github.io' + path;
