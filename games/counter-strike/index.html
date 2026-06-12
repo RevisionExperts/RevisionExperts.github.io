@@ -23,13 +23,14 @@
     <canvas id="canvas" onclick="window.focus(); this.focus();" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
+        // Direct browser injection loop for cross-origin multi-threading parameters
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
             if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
 
         var stitchedZipData = null;
 
-        // DIRECT CONFIGURATION: Emscripten automatically reads this object when xash.js loads
+        // WebAssembly Core Game Variable Configurations
         window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup', '-mpackage', 'cstrike.zip'],
@@ -40,23 +41,35 @@
                 } else if (stitchedZipData) {
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
+                    window.focus();
+                    document.getElementById('canvas').focus();
                 }
             },
-            // Native preRun hook forces injection the exact microsecond the engine file system turns on
+            // Native preRun hook forces injection the exact microsecond the engine filesystem turns on
             preRun: [function() {
                 if (stitchedZipData) {
-                    console.log("Injecting file payload...");
-                    try {
-                        // Force mount the data array into the root memory space using all common handlers
-                        if (typeof FS !== 'undefined') FS.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
-                        else if (window.Module.FS) window.Module.FS.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
-                    } catch (e) {
-                        console.error("Mount block override:", e);
+                    console.log("Injecting virtual file allocation table...");
+                    
+                    // Automatically looks up the core engine filesystem module variables
+                    var fs = (typeof FS !== 'undefined') ? FS : 
+                             (window.Module && window.Module.FS ? window.Module.FS : 
+                             (window.FS ? window.FS : null));
+                             
+                    if (fs && fs.createDataFile) {
+                        try {
+                            // Mounts your combined file stream cleanly into both standard engine pathways
+                            fs.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
+                            fs.createDataFile('/home/web_user/', 'cstrike.zip', stitchedZipData, true, false);
+                            console.log("Virtual data matrix successfully loaded.");
+                        } catch (e) {
+                            console.error("Mount bypass block override:", e);
+                        }
                     }
                 }
             }]
         };
 
+        // Asynchronous multi-stream chunk downloader
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
             const statusElement = document.getElementById('status');
@@ -99,7 +112,7 @@
                 statusElement.innerHTML = "Launching Counter-Strike Engine...";
                 progressBar.style.width = "100%";
 
-                // Fire the module engine script tag immediately now that the memory block array is complete
+                // Execute your original engine file scripts dynamically now that data arrays are balanced
                 const script = document.createElement('script');
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
                 document.body.appendChild(script);
