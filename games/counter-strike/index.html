@@ -17,8 +17,8 @@
 <body>
 
     <div id="loader-container">
-        <div id="status">Initializing Game Directories...</div>
-        <div id="data-counter">0 KB / 0 KB</div>
+        <div id="status">Streaming Engine Pipeline...</div>
+        <div id="data-counter">Initializing Asset Matrix...</div>
         <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
     </div>
 
@@ -29,7 +29,7 @@
             if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
 
-        // Helper function to format raw bytes into clean, readable KB or MB strings dynamically
+        // Universal bytes formatter for clean KB/MB readout calculation display
         function formatBytes(bytes) {
             if (bytes === 0) return '0 KB';
             const k = 1024;
@@ -47,8 +47,21 @@
             
             setStatus: function(text) {
                 var statusElement = document.getElementById('status');
+                var progressBar = document.getElementById('progress-bar');
+                var counterElement = document.getElementById('data-counter');
+                
                 if (text) {
                     statusElement.innerHTML = text;
+                    
+                    // Natively capture WebAssembly compile steps to drive the percentage slider tracker bar
+                    var match = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+                    if (match) {
+                        var curr = parseFloat(match[2]);
+                        var total = parseFloat(match[4]);
+                        var pct = Math.round((curr / total) * 100);
+                        progressBar.style.width = pct + "%";
+                        counterElement.innerHTML = formatBytes(curr) + " / " + formatBytes(total);
+                    }
                 } else {
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
@@ -64,7 +77,7 @@
                         fs.createFolder('/', 'cstrike', true, true);
                         fs.createFolder('/', 'valve', true, true);
                         
-                        // Set up dynamic hooks to capture engine network events for our counter metrics
+                        // Link virtual directories straight to your loose repository folders
                         fs.createLazyFile('/cstrike', 'liblist.gam', 'cstrike/liblist.gam', true, false);
                         fs.createLazyFile('/valve', 'liblist.gam', 'valve/liblist.gam', true, false);
                         fs.createLazyFile('/cstrike', 'game.cfg', 'cstrike/game.cfg', true, false);
@@ -74,62 +87,18 @@
             }]
         };
 
-        // INTERCEPTOR LOGIC: Listens to the browser network requests to update the MB/KB text interface
-        async function trackLooseFileDownload() {
-            const statusElement = document.getElementById('status');
-            const counterElement = document.getElementById('data-counter');
-            const progressBar = document.getElementById('progress-bar');
-            
-            // Core file path arrays required to boot up the early graphics layout engine
-            const primaryFiles = ['xash.js', 'xash.wasm', 'cstrike/liblist.gam', 'valve/liblist.gam'];
-            let loadedBytes = new Array(primaryFiles.length).fill(0);
-            let totalBytes = new Array(primaryFiles.length).fill(0);
+        // DIRECT UN-THROTTLED LAUNCH TRIGGER SEQUENCE
+        window.addEventListener('load', function() {
+            document.getElementById('status').innerHTML = "Compiling Engine Modules...";
+            document.getElementById('progress-bar').style.width = "25%";
+            document.getElementById('data-counter').innerHTML = "Reading local script bundles...";
 
-            try {
-                const downloadPromises = primaryFiles.map((file, index) => {
-                    return new Promise((resolve) => {
-                        const xhr = new XMLHttpRequest();
-                        xhr.open('GET', file, true);
-                        xhr.responseType = 'blob';
-                        
-                        xhr.onprogress = function(e) {
-                            if (e.lengthComputable) {
-                                loadedBytes[index] = e.loaded;
-                                totalBytes[index] = e.total;
-                                
-                                const totalLoaded = loadedBytes.reduce((a, b) => a + b, 0);
-                                const totalSize = totalBytes.reduce((a, b) => a + b, 15000000); // Approximate core footprint
-                                
-                                const pct = Math.min(Math.round((totalLoaded / totalSize) * 100), 100);
-                                
-                                // Render formatted conversion units directly inside the dashboard panel frame layout
-                                statusElement.innerHTML = "Streaming Loose Core Files... " + pct + "%";
-                                counterElement.innerHTML = formatBytes(totalLoaded) + " / " + formatBytes(totalSize);
-                                progressBar.style.width = pct + "%";
-                            }
-                        };
-                        
-                        xhr.onload = () => resolve();
-                        xhr.onerror = () => resolve(); // Keep going if it's already cached
-                        xhr.send(null);
-                    });
-                });
-
-                await Promise.all(downloadPromises);
-                
-                // Fire the core module script once data checks are verified
-                const script = document.createElement('script');
-                script.async = true;
-                script.type = 'module';
-                script.src = 'xash.js';
-                document.body.appendChild(script);
-
-            } catch (err) {
-                statusElement.innerHTML = "METRIC LOG INTERRUPTED";
-            }
-        }
-
-        trackLooseFileDownload();
+            const script = document.createElement('script');
+            script.async = true;
+            script.type = 'module';
+            script.src = 'xash.js'; // Boots directly via native tag mapping format
+            document.body.appendChild(script);
+        });
     </script>
 </body>
 </html>
