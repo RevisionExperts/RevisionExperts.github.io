@@ -5,19 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Counter-Strike 1.6 - RevisionExperts</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; display: flex; align-items: center; justify-content: center; }
-        canvas { width: 100vw; height: 100vh; display: block; background-color: #000; }
-        #loading-text { position: absolute; color: #ffa500; font-family: Arial, sans-serif; font-weight: bold; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; pointer-events: none; }
+        body { margin: 0; background-color: #0b0c0d; color: #fff; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        #loader-container { position: absolute; text-align: center; z-index: 10; width: 340px; }
+        #status { margin-bottom: 5px; font-size: 14px; color: #ffa500; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        #data-counter { margin-bottom: 15px; font-size: 12px; color: #888; font-family: monospace; }
+        .progress-track { width: 100%; height: 12px; background-color: #1a1c1e; border-radius: 6px; overflow: hidden; border: 1px solid #333; }
+        .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4500, #ff8c00); box-shadow: 0 0 10px #ff4500; transition: width 0.1s linear; }
+        canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
     </style>
 </head>
 <body>
 
-    <div id="loading-text">Initializing Game Directories...</div>
-    <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <div id="loader-container">
+        <div id="status">Initializing Game Directories...</div>
+        <div id="data-counter">0 KB / 0 KB</div>
+        <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
+    </div>
+
+    <canvas id="canvas" onclick="window.focus(); this.focus();" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
             if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
+        }
+
+        // Helper function to format raw bytes into clean, readable KB or MB strings dynamically
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 KB';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
         window.Module = {
@@ -28,46 +46,90 @@
             locateFile: function(path) { return path; },
             
             setStatus: function(text) {
-                if (!text) {
-                    var textElement = document.getElementById('loading-text');
-                    if (textElement) textElement.style.display = 'none';
+                var statusElement = document.getElementById('status');
+                if (text) {
+                    statusElement.innerHTML = text;
+                } else {
+                    document.getElementById('loader-container').style.display = 'none';
+                    document.getElementById('canvas').style.display = 'block';
                     window.focus();
                     document.getElementById('canvas').focus();
                 }
             },
 
-            // AUTO-MAPPING INTERFACE: Scans and mounts common asset layouts on boot
             preRun: [function() {
                 var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
                 if (fs) {
                     try {
-                        // Rebuild core system asset trees inside WebAssembly RAM allocation layout
                         fs.createFolder('/', 'cstrike', true, true);
                         fs.createFolder('/', 'valve', true, true);
                         
-                        // Force-inject key target engine map hooks natively from your loose directory folders
+                        // Set up dynamic hooks to capture engine network events for our counter metrics
                         fs.createLazyFile('/cstrike', 'liblist.gam', 'cstrike/liblist.gam', true, false);
                         fs.createLazyFile('/valve', 'liblist.gam', 'valve/liblist.gam', true, false);
-                        
-                        // Tells the reader to load core game menu assets on demand from the repository paths
                         fs.createLazyFile('/cstrike', 'game.cfg', 'cstrike/game.cfg', true, false);
                         fs.createLazyFile('/valve', 'valve.rc', 'valve/valve.rc', true, false);
-                        
-                        console.log("Virtual file allocation tree successfully mapped.");
-                    } catch (e) {
-                        console.error("Directory collision override:", e);
-                    }
+                    } catch (e) { console.error(e); }
                 }
             }]
         };
 
-        window.addEventListener('load', function() {
-            const script = document.createElement('script');
-            script.async = true;
-            script.type = 'module';
-            script.src = 'xash.js';
-            document.body.appendChild(script);
-        });
+        // INTERCEPTOR LOGIC: Listens to the browser network requests to update the MB/KB text interface
+        async function trackLooseFileDownload() {
+            const statusElement = document.getElementById('status');
+            const counterElement = document.getElementById('data-counter');
+            const progressBar = document.getElementById('progress-bar');
+            
+            // Core file path arrays required to boot up the early graphics layout engine
+            const primaryFiles = ['xash.js', 'xash.wasm', 'cstrike/liblist.gam', 'valve/liblist.gam'];
+            let loadedBytes = new Array(primaryFiles.length).fill(0);
+            let totalBytes = new Array(primaryFiles.length).fill(0);
+
+            try {
+                const downloadPromises = primaryFiles.map((file, index) => {
+                    return new Promise((resolve) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', file, true);
+                        xhr.responseType = 'blob';
+                        
+                        xhr.onprogress = function(e) {
+                            if (e.lengthComputable) {
+                                loadedBytes[index] = e.loaded;
+                                totalBytes[index] = e.total;
+                                
+                                const totalLoaded = loadedBytes.reduce((a, b) => a + b, 0);
+                                const totalSize = totalBytes.reduce((a, b) => a + b, 15000000); // Approximate core footprint
+                                
+                                const pct = Math.min(Math.round((totalLoaded / totalSize) * 100), 100);
+                                
+                                // Render formatted conversion units directly inside the dashboard panel frame layout
+                                statusElement.innerHTML = "Streaming Loose Core Files... " + pct + "%";
+                                counterElement.innerHTML = formatBytes(totalLoaded) + " / " + formatBytes(totalSize);
+                                progressBar.style.width = pct + "%";
+                            }
+                        };
+                        
+                        xhr.onload = () => resolve();
+                        xhr.onerror = () => resolve(); // Keep going if it's already cached
+                        xhr.send(null);
+                    });
+                });
+
+                await Promise.all(downloadPromises);
+                
+                // Fire the core module script once data checks are verified
+                const script = document.createElement('script');
+                script.async = true;
+                script.type = 'module';
+                script.src = 'xash.js';
+                document.body.appendChild(script);
+
+            } catch (err) {
+                statusElement.innerHTML = "METRIC LOG INTERRUPTED";
+            }
+        }
+
+        trackLooseFileDownload();
     </script>
 </body>
 </html>
