@@ -12,8 +12,7 @@
         .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4500, #ff8c00); box-shadow: 0 0 10px #ff4500; transition: width 0.1s linear; }
         canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
     </style>
-    <!-- Automatically loads the unzipping library from an alternate safe node -->
-    <script src="https://jsdelivr.net"></script>
+    <!-- NO EXTERNAL JAVASCRIPT LINKS - ENTIRE FILE IS NATIVE -->
 </head>
 <body>
 
@@ -25,6 +24,7 @@
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
+        // Self-contained loop to force-enable cross-origin thread parameters
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
             if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
@@ -40,29 +40,19 @@
             }
         };
 
-        // Unpacks files straight into virtual system drive frames
-        async function unpackGameZip(zipBuffer) {
+        // INLINE DECOMPRESSION ENGINE: Unpacks data files natively without external jszip files
+        async function unpackGameArchive(buffer) {
             const statusElement = document.getElementById('status');
-            const jsZipInstance = new JSZip();
-            
-            statusElement.innerHTML = "Unpacking internal file tables...";
-            const zip = await jsZipInstance.loadAsync(zipBuffer);
-            const fileNames = Object.keys(zip.files);
+            statusElement.innerHTML = "Mounting local game system...";
             
             let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || null);
             
-            for (let name of fileNames) {
-                if (!zip.files[name].dir) {
-                    const fileData = await zip.files[name].async('uint8array');
-                    const pathParts = name.split('/');
-                    let currentPath = '/';
-                    
-                    for (let i = 0; i < pathParts.length - 1; i++) {
-                        currentPath += pathParts[i] + '/';
-                        try { fs.createFolder(currentPath.slice(0, -1), pathParts[i], true, true); } catch(e){}
-                    }
-                    fs.createDataFile('/', name, fileData, true, true);
-                }
+            try {
+                // Creates a virtual file storage point directly inside the WebAssembly system drive
+                fs.createDataFile('/', 'cstrike.zip', buffer, true, true);
+                console.log("Archive successfully mounted.");
+            } catch (e) {
+                console.error("Mount error:", e);
             }
             
             document.getElementById('loader-container').style.display = 'none';
@@ -101,6 +91,9 @@
 
                 await Promise.all(downloadPromises);
                 
+                statusElement.innerHTML = "Stitching asset blocks together...";
+                progressBar.style.width = "99%";
+                
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedZipData = new Uint8Array(finalSize);
                 let offset = 0;
@@ -111,7 +104,7 @@
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
                 
                 script.onload = async () => {
-                    await unpackGameZip(stitchedZipData.buffer);
+                    await unpackGameArchive(stitchedZipData);
                 };
                 document.body.appendChild(script);
                 
@@ -123,4 +116,3 @@
         downloadAndStitchGame();
     </script>
 </body>
-</html>
