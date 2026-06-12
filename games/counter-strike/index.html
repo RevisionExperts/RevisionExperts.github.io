@@ -25,7 +25,7 @@
     <canvas id="canvas" onclick="window.focus(); this.focus();" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
-        // IRONCLAD SERVICE WORKER TRIGGER: Forces the browser tab to grant high-performance multi-threading execution permissions
+        // Cross-Origin Isolation header proxy loops to ensure native engine threading permissions
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
             const workerCode = `
                 self.addEventListener('install', () => self.skipWaiting());
@@ -45,15 +45,13 @@
             `;
             const blob = new Blob([workerCode], { type: 'text/javascript' });
             navigator.serviceWorker.register(URL.createObjectURL(blob)).then(() => {
-                if (window.name !== 'coi-reload') {
-                    window.name = 'coi-reload';
-                    window.location.reload();
-                }
+                if (window.name !== 'coi-reload') { window.name = 'coi-reload'; window.location.reload(); }
             }).catch(err => console.error(err));
         }
 
         var stitchedPakData = null;
 
+        // Core Assembly Parameters Configuration Block Interface
         window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup', '-pak', 'cstrike.pak'],
@@ -76,21 +74,36 @@
                 }
             },
 
+            // UNIVERSAL MOUNTING ENGINE OVERRIDE: Forces data injection across all common emscripten directory naming slots
             preRun: [function() {
                 if (stitchedPakData) {
+                    console.log("Initializing core file matrix injection routine...");
                     var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
+                    
                     if (fs && fs.createDataFile) {
                         try {
+                            // Mount path pattern A: Root directory
                             fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
+                            
+                            // Mount path pattern B: Game subfolder slot mapping
                             try { fs.createFolder('/', 'cstrike', true, true); } catch(e){}
                             fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
-                            console.log("Package data binary injected to core file systems successfully.");
-                        } catch (e) { console.error(e); }
+                            
+                            // Mount path pattern C: Virtual OS home directories
+                            try { fs.createFolder('/', 'home', true, true); } catch(e){}
+                            try { fs.createFolder('/home', 'web_user', true, true); } catch(e){}
+                            try { fs.createFolder('/home/web_user', 'cstrike', true, true); } catch(e){}
+                            fs.createDataFile('/home/web_user', 'cstrike.pak', stitchedPakData, true, false);
+                            fs.createDataFile('/home/web_user/cstrike', 'cstrike.pak', stitchedPakData, true, false);
+                            
+                            console.log("Core filesystem package map overrides successfully deployed.");
+                        } catch (e) { console.error("Mount system redirection fault override:", e); }
                     }
                 }
             }]
         };
 
+        // Multi-stream chunk downloading loop script interface
         async function loadGamePackage() {
             const parts = ['cstrike.pak.2', 'cstrike.pak.3', 'cstrike.pak.4', 'cstrike.pak.5', 'cstrike.pak.6'];
             const statusElement = document.getElementById('status');
@@ -133,8 +146,21 @@
                 statusElement.innerHTML = "Launching Counter-Strike Engine...";
                 progressBar.style.width = "100%";
                 
+                // Fire compiler engine modules immediately now that memory buffer strings are filled
                 const script = document.createElement('script');
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
+                
+                // Fallback direct UI drop safety anchor hook
+                script.onload = () => {
+                    setTimeout(() => {
+                        if (document.getElementById('loader-container').style.display !== 'none') {
+                            document.getElementById('loader-container').style.display = 'none';
+                            document.getElementById('canvas').style.display = 'block';
+                            window.focus(); document.getElementById('canvas').focus();
+                        }
+                    }, 2000);
+                };
+                
                 document.body.appendChild(script);
                 
             } catch (err) { statusElement.innerHTML = "TRANSFER FAULT - TRY REFRESHING"; }
