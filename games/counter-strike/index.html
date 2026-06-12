@@ -79,7 +79,7 @@
         // WebAssembly Configuration Interface
         var Module = {
             canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup'],
+            arguments: ['-game', 'cstrike', '-nostartup', 'mpackage', 'cstrike.zip'],
             print: console.log,
             printErr: console.error,
             locateFile: function(path) { return path; },
