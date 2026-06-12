@@ -16,9 +16,31 @@
     <canvas id="canvas" onclick="window.focus(); this.focus();" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
-        // Native script engine context initialization parameters
+        // UNIVERSAL SECURITY COI UNLOCKER: Dynamically forces Cross-Origin Isolation headers to wake up the CPU
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
-            if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
+            const workerCode = `
+                self.addEventListener('install', () => self.skipWaiting());
+                self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+                self.addEventListener('fetch', e => {
+                    if (e.request.cache === 'only-if-cached' && e.request.mode !== 'same-origin') return;
+                    e.respondWith(
+                        fetch(e.request).then(res => {
+                            if (res.status === 0) return res;
+                            const h = new Headers(res.headers);
+                            h.set('Cross-Origin-Opener-Policy', 'same-origin');
+                            h.set('Cross-Origin-Embedder-Policy', 'require-corp');
+                            return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
+                        })
+                    );
+                });
+            `;
+            const blob = new Blob([workerCode], { type: 'text/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).then(() => {
+                if (window.name !== 'coi-loop-unlocked') {
+                    window.name = 'coi-loop-unlocked';
+                    window.location.reload();
+                }
+            }).catch(err => console.error(err));
         }
 
         window.Module = {
@@ -27,7 +49,6 @@
             print: console.log,
             printErr: console.error,
             
-            // Absolute path lock: Points the compiler directly to your games subfolder tree layout
             locateFile: function(path) {
                 return 'https://github.io' + path;
             },
