@@ -5,115 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Counter-Strike 1.6 - RevisionExperts</title>
     <style>
-        body {
-            margin: 0;
-            background-color: #0b0c0d;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-        #loader-container {
-            position: absolute;
-            text-align: center;
-            z-index: 10;
-            width: 320px;
-        }
-        #status {
-            margin-bottom: 15px;
-            font-size: 14px;
-            color: #ffa500;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .progress-track {
-            width: 100%;
-            height: 12px;
-            background-color: #1a1c1e;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #333;
-        }
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #ff4500, #ff8c00);
-            box-shadow: 0 0 10px #ff4500;
-            transition: width 0.1s linear;
-        }
-        canvas {
-            width: 100vw;
-            height: 100vh;
-            display: none;
-            background-color: #000;
-        }
+        body { margin: 0; background-color: #0b0c0d; color: #fff; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        #loader-container { position: absolute; text-align: center; z-index: 10; width: 320px; }
+        #status { margin-bottom: 15px; font-size: 14px; color: #ffa500; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .progress-track { width: 100%; height: 12px; background-color: #1a1c1e; border-radius: 6px; overflow: hidden; border: 1px solid #333; }
+        .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4500, #ff8c00); box-shadow: 0 0 10px #ff4500; transition: width 0.1s linear; }
+        canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
     </style>
+    <!-- Automatically loads the unzipping library from an alternate safe node -->
+    <script src="https://jsdelivr.net"></script>
 </head>
 <body>
 
     <div id="loader-container">
         <div id="status">Connecting to Repository... 0%</div>
-        <div class="progress-track">
-            <div id="progress-bar" class="progress-fill"></div>
-        </div>
+        <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
     </div>
 
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
-        // Injects standard cross-origin isolation permissions inside the browser sandbox runtime environment
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
-            if (window.name !== 'coi-loop') {
-                window.name = 'coi-loop';
-                window.location.reload();
-            }
+            if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
 
         var stitchedZipData = null;
 
-        // Initialize WebAssembly engine hooks before launching the module loader script
         window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
-            print: console.log,
-            printErr: console.error,
-            locateFile: function(path) { return path; },
-            
+            print: console.log, printErr: console.error, locateFile: function(path) { return path; },
             setStatus: function(text) {
-                var statusElement = document.getElementById('status');
-                if (text) {
-                    statusElement.innerHTML = text;
-                } else if (stitchedZipData) {
-                    document.getElementById('loader-container').style.display = 'none';
-                    document.getElementById('canvas').style.display = 'block';
-                }
-            },
-
-            // MOUNT ALIGNMENT FIX: Mounts the asset files directly into standard local root pathways
-            preRun: [function() {
-                if (stitchedZipData) {
-                    var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || null);
-                    if (fs && fs.createDataFile) {
-                        // Injects both explicit string locations to satisfy the engine execution requirements
-                        try { fs.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false); } catch(e){}
-                        try { fs.createDataFile('/home/web_user/', 'cstrike.zip', stitchedZipData, true, false); } catch(e){}
-                        console.log("Game bundles mounted into core system filesystem layers.");
-                    }
-                }
-            }]
+                if (text) document.getElementById('status').innerHTML = text;
+            }
         };
+
+        // Unpacks files straight into virtual system drive frames
+        async function unpackGameZip(zipBuffer) {
+            const statusElement = document.getElementById('status');
+            const jsZipInstance = new JSZip();
+            
+            statusElement.innerHTML = "Unpacking internal file tables...";
+            const zip = await jsZipInstance.loadAsync(zipBuffer);
+            const fileNames = Object.keys(zip.files);
+            
+            let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || null);
+            
+            for (let name of fileNames) {
+                if (!zip.files[name].dir) {
+                    const fileData = await zip.files[name].async('uint8array');
+                    const pathParts = name.split('/');
+                    let currentPath = '/';
+                    
+                    for (let i = 0; i < pathParts.length - 1; i++) {
+                        currentPath += pathParts[i] + '/';
+                        try { fs.createFolder(currentPath.slice(0, -1), pathParts[i], true, true); } catch(e){}
+                    }
+                    fs.createDataFile('/', name, fileData, true, true);
+                }
+            }
+            
+            document.getElementById('loader-container').style.display = 'none';
+            document.getElementById('canvas').style.display = 'block';
+        }
 
         // Asynchronous multi-stream chunk downloader
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
             const statusElement = document.getElementById('status');
             const progressBar = document.getElementById('progress-bar');
-            
             let loadedBytes = new Array(parts.length).fill(0);
             let totalBytes = new Array(parts.length).fill(0);
             let chunksData = [];
@@ -122,32 +82,18 @@
                 const downloadPromises = parts.map((part, index) => {
                     return new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
-                        xhr.open('GET', part, true); 
-                        xhr.responseType = 'arraybuffer';
+                        xhr.open('GET', part, true); xhr.responseType = 'arraybuffer';
                         
                         xhr.onprogress = function(e) {
                             if (e.lengthComputable) {
-                                loadedBytes[index] = e.loaded;
-                                totalBytes[index] = e.total;
-                                
-                                const totalLoaded = loadedBytes.reduce((a, b) => a + b, 0);
-                                const totalSize = totalBytes.reduce((a, b) => a + b, 293000000); 
-                                const pct = Math.min(Math.round((totalLoaded / totalSize) * 100), 99);
-                                
+                                loadedBytes[index] = e.loaded; totalBytes[index] = e.total;
+                                const pct = Math.min(Math.round((loadedBytes.reduce((a, b) => a + b, 0) / totalBytes.reduce((a, b) => a + b, 293000000)) * 100), 99);
                                 statusElement.innerHTML = "Streaming Game Chunks... " + pct + "%";
                                 progressBar.style.width = pct + "%";
                             }
                         };
                         
-                        xhr.onload = function() {
-                            if (xhr.status === 200) {
-                                chunksData[index] = new Uint8Array(xhr.response);
-                                resolve();
-                            } else {
-                                reject();
-                            }
-                        };
-                        
+                        xhr.onload = () => { if (xhr.status === 200) { chunksData[index] = new Uint8Array(xhr.response); resolve(); } else reject(); };
                         xhr.onerror = () => reject();
                         xhr.send(null);
                     });
@@ -155,31 +101,22 @@
 
                 await Promise.all(downloadPromises);
                 
-                statusElement.innerHTML = "Stitching asset blocks together...";
-                progressBar.style.width = "99%";
-                
-                // Construct single continuous data array out of individual chunks
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedZipData = new Uint8Array(finalSize);
                 let offset = 0;
-                for (let chunk of chunksData) {
-                    stitchedZipData.set(chunk, offset);
-                    offset += chunk.length;
-                }
-                
-                statusElement.innerHTML = "Launching Counter-Strike...";
-                progressBar.style.width = "100%";
+                for (let chunk of chunksData) { stitchedZipData.set(chunk, offset); offset += chunk.length; }
                 
                 // Inject the game core engine script tag after the data array is prepared
                 const script = document.createElement('script');
-                script.async = true;
-                script.type = 'module';
-                script.src = 'xash.js';
+                script.async = true; script.type = 'module'; script.src = 'xash.js';
+                
+                script.onload = async () => {
+                    await unpackGameZip(stitchedZipData.buffer);
+                };
                 document.body.appendChild(script);
                 
             } catch (err) {
                 statusElement.innerHTML = "FILE TRANSFER ERROR";
-                statusElement.style.color = "#ff0000";
             }
         }
 
