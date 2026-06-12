@@ -29,46 +29,33 @@
 
         var stitchedZipData = null;
 
+        // DIRECT CONFIGURATION: Emscripten automatically reads this object when xash.js loads
         window.Module = {
             canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup'],
+            arguments: ['-game', 'cstrike', '-nostartup', '-mpackage', 'cstrike.zip'],
             print: console.log, printErr: console.error, locateFile: function(path) { return path; },
             setStatus: function(text) {
-                if (text) document.getElementById('status').innerHTML = text;
-            }
-        };
-
-        // UNIVERSAL TIMING MATRIX: Scans all possible Emscripten internal file system variables
-        async function unpackGameArchive(buffer) {
-            const statusElement = document.getElementById('status');
-            statusElement.innerHTML = "Initializing local game system...";
-            
-            const checkFS = setInterval(() => {
-                // Tries standard FS, Module level FS, window level FS, and wrapped engine FS contexts
-                let fs = (typeof FS !== 'undefined') ? FS : 
-                         (window.Module && window.Module.FS ? window.Module.FS : 
-                         (window.FS ? window.FS : 
-                         (typeof Module !== 'undefined' && Module.FS ? Module.FS : null)));
-                
-                if (fs && fs.createDataFile) {
-                    clearInterval(checkFS); // Found it! Stop looping.
-                    
+                if (text) {
+                    document.getElementById('status').innerHTML = text;
+                } else if (stitchedZipData) {
+                    document.getElementById('loader-container').style.display = 'none';
+                    document.getElementById('canvas').style.display = 'block';
+                }
+            },
+            // Native preRun hook forces injection the exact microsecond the engine file system turns on
+            preRun: [function() {
+                if (stitchedZipData) {
+                    console.log("Injecting file payload...");
                     try {
-                        fs.createDataFile('/', 'cstrike.zip', buffer, true, true);
-                        console.log("Archive successfully mounted.");
-                        
-                        document.getElementById('loader-container').style.display = 'none';
-                        const gameCanvas = document.getElementById('canvas');
-                        gameCanvas.style.display = 'block';
-                        gameCanvas.focus();
-                        window.focus();
+                        // Force mount the data array into the root memory space using all common handlers
+                        if (typeof FS !== 'undefined') FS.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
+                        else if (window.Module.FS) window.Module.FS.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
                     } catch (e) {
-                        console.error("Mount error:", e);
-                        statusElement.innerHTML = "Mount Error - Try Refreshing";
+                        console.error("Mount block override:", e);
                     }
                 }
-            }, 50); 
-        }
+            }]
+        };
 
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
@@ -109,12 +96,12 @@
                 let offset = 0;
                 for (let chunk of chunksData) { stitchedZipData.set(chunk, offset); offset += chunk.length; }
                 
+                statusElement.innerHTML = "Launching Counter-Strike Engine...";
+                progressBar.style.width = "100%";
+
+                // Fire the module engine script tag immediately now that the memory block array is complete
                 const script = document.createElement('script');
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
-                
-                script.onload = async () => {
-                    await unpackGameArchive(stitchedZipData);
-                };
                 document.body.appendChild(script);
                 
             } catch (err) {
