@@ -33,10 +33,7 @@
 
 </div>
 
-<script type="module">
-  import { initializeApp } from "www.gstatic.com";
-  import { getAuth, setPersistence, browserSessionPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "www.gstatic.com";
-
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyARmMn5vR0v_Kse2iR_eRKNCbEZow2vScs",
     authDomain: "://firebaseapp.com",
@@ -47,8 +44,8 @@
     measurementId: "G-6VGZ4M1DHL"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
 
   const usernameInput = document.getElementById("auth-username");
   const passwordInput = document.getElementById("auth-password");
@@ -86,24 +83,29 @@
       return;
     }
 
-    const dummyEmail = `${rawUsername.toLowerCase()}@arcade.local`;
+    const dummyEmail = rawUsername.toLowerCase() + "@arcade.local";
     submitBtn.innerText = "Processing Auth Script...";
     submitBtn.disabled = true;
 
-    setPersistence(auth, browserSessionPersistence)
-      .then(async () => {
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+      .then(() => {
         if (isLoginMode) {
-          await signInWithEmailAndPassword(auth, dummyEmail, password);
+          return auth.signInWithEmailAndPassword(dummyEmail, password);
+        } else {
+          return auth.createUserWithEmailAndPassword(dummyEmail, password);
+        }
+      })
+      .then(() => {
+        if (isLoginMode) {
           alert("Authorization Successful! Welcome back.");
         } else {
-          await createUserWithEmailAndPassword(auth, dummyEmail, password);
           alert("Account Successfully Created! Welcome aboard.");
         }
         window.location.href = "/games/";
       })
       .catch((error) => {
         let cleanMessage = error.message;
-        if (error.code === "auth/invalid-credential") {
+        if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/user-not-found") {
           cleanMessage = "Incorrect username or secret password.";
         } else if (error.code === "auth/email-already-in-use") {
           cleanMessage = "This username is already taken by another player.";
