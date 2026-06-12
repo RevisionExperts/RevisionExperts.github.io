@@ -66,7 +66,7 @@
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
-        // Self-contained loop to force-enable cross-origin thread parameters
+        // Injects standard cross-origin isolation permissions inside the browser sandbox runtime environment
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
             if (window.name !== 'coi-loop') {
                 window.name = 'coi-loop';
@@ -76,7 +76,7 @@
 
         var stitchedZipData = null;
 
-        // Define Module parameters BEFORE xash.js runs to ensure perfect memory alignment
+        // Initialize WebAssembly engine hooks before launching the module loader script
         window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
@@ -94,19 +94,21 @@
                 }
             },
 
-            // This fires the exact millisecond the WebAssembly filesystem loads
+            // MOUNT ALIGNMENT FIX: Mounts the asset files directly into standard local root pathways
             preRun: [function() {
                 if (stitchedZipData) {
                     var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || null);
                     if (fs && fs.createDataFile) {
-                        fs.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
-                        console.log("Game assets successfully mounted.");
+                        // Injects both explicit string locations to satisfy the engine execution requirements
+                        try { fs.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false); } catch(e){}
+                        try { fs.createDataFile('/home/web_user/', 'cstrike.zip', stitchedZipData, true, false); } catch(e){}
+                        console.log("Game bundles mounted into core system filesystem layers.");
                     }
                 }
             }]
         };
 
-        // Asynchronous multi-stream downloader
+        // Asynchronous multi-stream chunk downloader
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
             const statusElement = document.getElementById('status');
@@ -156,7 +158,7 @@
                 statusElement.innerHTML = "Stitching asset blocks together...";
                 progressBar.style.width = "99%";
                 
-                // Glue the array fragments back into a single file payload
+                // Construct single continuous data array out of individual chunks
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedZipData = new Uint8Array(finalSize);
                 let offset = 0;
@@ -168,7 +170,7 @@
                 statusElement.innerHTML = "Launching Counter-Strike...";
                 progressBar.style.width = "100%";
                 
-                // TRIGGER ENGINE: Now safely launch xash.js since the file array is 100% complete
+                // Inject the game core engine script tag after the data array is prepared
                 const script = document.createElement('script');
                 script.async = true;
                 script.type = 'module';
@@ -176,7 +178,7 @@
                 document.body.appendChild(script);
                 
             } catch (err) {
-                statusElement.innerHTML = "FILE CORRUPTION ERROR";
+                statusElement.innerHTML = "FILE TRANSFER ERROR";
                 statusElement.style.color = "#ff0000";
             }
         }
