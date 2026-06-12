@@ -18,6 +18,8 @@
         
         canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
     </style>
+    <!-- Loads an optimized unzipping library natively from an alternate stable source node -->
+    <script src="https://jsdelivr.net" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -42,7 +44,7 @@
 
         window.Module = {
             canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup', '-pak', 'cstrike.pak'],
+            arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log, printErr: console.error,
             locateFile: function(path) {
                 if (path.endsWith('.wasm')) { return 'https://github.io' + path; }
@@ -52,33 +54,64 @@
                 if (text && !text.includes('Running')) {
                     document.getElementById('status').innerHTML = text;
                 }
-            },
-            preRun: [function() {
-                if (stitchedPakData) {
-                    var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
-                    if (fs && fs.createDataFile) {
-                        try {
-                            fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
-                            try { fs.createFolder('/', 'cstrike', true, true); } catch(e){}
-                            fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
-                            console.log("Verified asset package successfully mounted to memory filesystem.");
-                        } catch (e) { console.error("Mount system fault:", e); }
-                    }
-                }
-            }]
+            }
         };
 
-        function startCoreGameViewport() {
-            document.getElementById('loader-container').style.display = 'none';
-            const gameCanvas = document.getElementById('canvas');
-            gameCanvas.style.display = 'block';
+        // AUTO-EXTRACTOR: Safely extracts files directly into the virtual system drive tree on boot
+        async function unpackStitchedZip(arrayBuffer) {
+            const statusElement = document.getElementById('status');
+            statusElement.innerHTML = "Unpacking internal files... please wait";
             
-            window.focus();
-            gameCanvas.focus();
+            try {
+                const zipInstance = new JSZip();
+                const zip = await zipInstance.loadAsync(arrayBuffer);
+                const fileNames = Object.keys(zip.files);
+                
+                let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
+                
+                for (let name of fileNames) {
+                    if (!zip.files[name].dir) {
+                        const fileData = await zip.files[name].async('uint8array');
+                        const pathParts = name.split('/');
+                        let currentPath = '/';
+                        
+                        // Rebuild your folder directory links dynamically
+                        for (let i = 0; i < pathParts.length - 1; i++) {
+                            currentPath += pathParts[i] + '/';
+                            try { fs.createFolder(currentPath.slice(0, -1), pathParts[i], true, true); } catch(e){}
+                        }
+                        fs.createDataFile('/', name, fileData, true, true);
+                    }
+                }
+                
+                console.log("Virtual layout extraction complete.");
+                
+                // Hide loading screen panel and open up graphics viewports
+                document.getElementById('loader-container').style.display = 'none';
+                const gameCanvas = document.getElementById('canvas');
+                gameCanvas.style.display = 'block';
+                window.focus(); gameCanvas.focus();
 
-            const script = document.createElement('script');
-            script.async = true; script.type = 'module'; script.src = 'xash.js';
-            document.body.appendChild(script);
+                // Boot the final engine script module safely
+                const script = document.createElement('script');
+                script.async = true; script.type = 'module'; script.src = 'xash.js';
+                document.body.appendChild(script);
+                
+            } catch (err) {
+                console.error(err);
+                statusElement.innerHTML = "EXTRACTION SYSTEM FAULT";
+            }
+        }
+
+        async function startCoreGameViewport() {
+            const statusElement = document.getElementById('status');
+            document.getElementById('launch-btn').style.display = 'none';
+            
+            if (stitchedPakData) {
+                await unpackStitchedZip(stitchedPakData.buffer);
+            } else {
+                statusElement.innerHTML = "DATA ARRAY EMPTY - ERROR";
+            }
         }
 
         async function loadGamePackage() {
@@ -117,7 +150,6 @@
                 stitchedPakData = new Uint8Array(finalSize);
                 let offset = 0;
                 
-                // FIX: Cleared out the syntax assignment typo completely so the data saves correctly
                 for (let chunk of chunksData) { 
                     stitchedPakData.set(chunk, offset); 
                     offset += chunk.length; 
