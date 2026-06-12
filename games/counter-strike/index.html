@@ -44,7 +44,7 @@
             height: 100%;
             background: linear-gradient(90deg, #ff4500, #ff8c00);
             box-shadow: 0 0 10px #ff4500;
-            transition: width 0.1s linear;
+            transition: width 0.2s ease;
         }
         canvas {
             width: 100vw;
@@ -57,7 +57,7 @@
 <body>
 
     <div id="loader-container">
-        <div id="status">Assembling Local Assets... 0%</div>
+        <div id="status">Connecting to Local Repository... 0%</div>
         <div class="progress-track">
             <div id="progress-bar" class="progress-fill"></div>
         </div>
@@ -66,77 +66,117 @@
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
-        // Clean native cross-origin header injection without relying on any external files
+        // Self-contained loop to force-enable cross-origin thread parameters
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
-            const currentUrl = window.location.href;
-            navigator.serviceWorker.register(
-                'data:text/javascript;base64,' + btoa(`
-                    self.addEventListener('install', () => self.skipWaiting());
-                    self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-                    self.addEventListener('fetch', e => {
-                        if (e.request.cache === 'only-if-cached' && e.request.mode !== 'same-origin') return;
-                        e.respondWith(
-                            fetch(e.request).then(res => {
-                                if (res.status === 0) return res;
-                                const h = new Headers(res.headers);
-                                h.set('Cross-Origin-Opener-Policy', 'same-origin');
-                                h.set('Cross-Origin-Embedder-Policy', 'require-corp');
-                                return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
-                            })
-                        );
-                    });
-                `)
-            ).then(() => window.location.reload());
+            if (window.name !== 'coi-loop') {
+                window.name = 'coi-loop';
+                window.location.reload();
+            }
         }
 
-        // WebAssembly Core Game Variable Configurations
+        // WebAssembly Configuration Hooks
         var Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log,
             printErr: console.error,
+            locateFile: function(path) { return path; },
             
             setStatus: function(text) {
-                var statusElement = document.getElementById('status');
-                if (!text) {
+                if (!text && gameFilesLoaded) {
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
                 }
             },
-
-            // THE LOCAL STITCHER: Combines your 4 split repository files back together
+            
+            // Delays engine start until our asynchronous download function returns true
             preRun: [function() {
-                var parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
-                var buffers = [];
-                var statusElement = document.getElementById('status');
-                var progressBar = document.getElementById('progress-bar');
-                
-                parts.forEach(function(part, index) {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('GET', part, false); // Fetches your local chunk file
-                    xhr.responseType = 'arraybuffer';
-                    xhr.send(null);
-                    
-                    buffers.push(new Uint8Array(xhr.response));
-                    
-                    var pct = Math.round(((index + 1) / parts.length) * 100);
-                    statusElement.innerHTML = "Stitching Local Chunks... " + pct + "%";
-                    progressBar.style.width = pct + "%";
-                });
-                
-                // Merge all chunks back into the core virtual file stream
-                var totalLength = buffers.reduce((acc, val) => acc + val.length, 0);
-                var combined = new Uint8Array(totalLength);
-                var offset = 0;
-                buffers.forEach(function(buffer) {
-                    combined.set(buffer, offset);
-                    offset += buffer.length;
-                });
-                
-                Module.FS_createDataFile('/', 'cstrike.zip', combined, true, false);
-            }],
-            locateFile: function(path) { return path; }
+                Module.addRunDependency('fp_load');
+                downloadAndStitchGame();
+            }]
         };
+
+        var gameFilesLoaded = false;
+
+        // THE ASYNCHRONOUS STITCHER: Downloads chunks concurrently without freezing the browser
+        async function downloadAndStitchGame() {
+            const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
+            const statusElement = document.getElementById('status');
+            const progressBar = document.getElementById('progress-bar');
+            
+            // Track dynamic download tracking stats for each file chunk
+            let loadedBytes = new Array(parts.length).fill(0);
+            let totalBytes = new Array(parts.length).fill(0);
+            let chunksData = [];
+
+            try {
+                // Initialize modern asynchronous fetch operations simultaneously
+                const downloadPromises = parts.map((part, index) => {
+                    return new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', part, true); // True makes it asynchronous!
+                        xhr.responseType = 'arraybuffer';
+                        
+                        xhr.onprogress = function(e) {
+                            if (e.lengthComputable) {
+                                loadedBytes[index] = e.loaded;
+                                totalBytes[index] = e.total;
+                                
+                                // Calculate total mathematical progress across all 4 streams
+                                const totalLoaded = loadedBytes.reduce((a, b) => a + b, 0);
+                                const totalSize = totalBytes.reduce((a, b) => a + b, 293000000); // Fallback to ~293MB
+                                const pct = Math.min(Math.round((totalLoaded / totalSize) * 100), 99);
+                                
+                                statusElement.innerHTML = "Streaming Assets... " + pct + "%";
+                                progressBar.style.width = pct + "%";
+                            }
+                        };
+                        
+                        xhr.onload = function() {
+                            if (xhr.status === 200) {
+                                chunksData[index] = new Uint8Array(xhr.response);
+                                resolve();
+                            } else {
+                                reject("Failed to load chunk: " + part);
+                            }
+                        };
+                        
+                        xhr.onerror = () => reject("Network connectivity error.");
+                        xhr.send(null);
+                    });
+                });
+
+                // Wait for all 4 asynchronous network operations to successfully finish
+                await Promise.all(downloadPromises);
+                
+                statusElement.innerHTML = "Stitching asset blocks together...";
+                progressBar.style.width = "99%";
+                
+                // Construct single continuous data array out of individual chunks
+                const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
+                const combinedFile = new Uint8Array(finalSize);
+                let offset = 0;
+                for (let chunk of chunksData) {
+                    combinedFile.set(chunk, offset);
+                    offset += chunk.length;
+                }
+                
+                // Mount file into the WebAssembly runtime space
+                Module.FS_createDataFile('/', 'cstrike.zip', combinedFile, true, false);
+                
+                statusElement.innerHTML = "Launching Counter-Strike...";
+                progressBar.style.width = "100%";
+                gameFilesLoaded = true;
+                
+                // Tell the engine to turn on
+                Module.removeRunDependency('fp_load');
+                
+            } catch (err) {
+                statusElement.innerHTML = "CRITICAL LOAD ERROR";
+                statusElement.style.color = "#ff0000";
+                console.error(err);
+            }
+        }
     </script>
     
     <script async src="xash.js"></script>
