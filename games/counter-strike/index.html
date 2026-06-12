@@ -20,7 +20,6 @@
         <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
     </div>
 
-    <!-- Added direct focus activation click events -->
     <canvas id="canvas" onclick="window.focus(); this.focus();" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
@@ -39,27 +38,34 @@
             }
         };
 
+        // FIXED TIMING ENGINE: Waits for the filesystem to initialize before mounting
         async function unpackGameArchive(buffer) {
             const statusElement = document.getElementById('status');
-            statusElement.innerHTML = "Mounting local game system...";
+            statusElement.innerHTML = "Initializing local game system...";
             
-            let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || null);
-            
-            try {
-                fs.createDataFile('/', 'cstrike.zip', buffer, true, true);
-                console.log("Archive successfully mounted.");
-            } catch (e) {
-                console.error("Mount error:", e);
-            }
-            
-            // Hides the loading elements and wakes up the main canvas window
-            document.getElementById('loader-container').style.display = 'none';
-            const gameCanvas = document.getElementById('canvas');
-            gameCanvas.style.display = 'block';
-            
-            // FORCES THE ENGINE TO ACTIVE SIGHT: Focuses screen context variables
-            gameCanvas.focus();
-            window.focus();
+            // Loop checker to wait for the engine filesystem to wake up
+            const checkFS = setInterval(() => {
+                let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || null);
+                
+                if (fs && fs.createDataFile) {
+                    clearInterval(checkFS); // Stop waiting!
+                    
+                    try {
+                        fs.createDataFile('/', 'cstrike.zip', buffer, true, true);
+                        console.log("Archive successfully mounted.");
+                        
+                        // Hide loading overlay and turn on the canvas graphics window
+                        document.getElementById('loader-container').style.display = 'none';
+                        const gameCanvas = document.getElementById('canvas');
+                        gameCanvas.style.display = 'block';
+                        gameCanvas.focus();
+                        window.focus();
+                    } catch (e) {
+                        console.error("Mount error:", e);
+                        statusElement.innerHTML = "Mount Error - Try Refreshing";
+                    }
+                }
+            }, 50); // Checks every 50 milliseconds
         }
 
         async function downloadAndStitchGame() {
