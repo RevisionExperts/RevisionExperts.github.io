@@ -33,7 +33,7 @@
 
         window.Module = {
             canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup'],
+            arguments: ['-game', 'cstrike', '-nostartup', '-pak', '/cstrike/cstrike.pak'],
             print: console.log, printErr: console.error, locateFile: function(path) { return path; },
             
             setStatus: function(text) {
