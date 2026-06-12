@@ -11,11 +11,8 @@
         #data-counter { margin-bottom: 15px; font-size: 12px; color: #888; font-family: monospace; }
         .progress-track { width: 100%; height: 12px; background-color: #1a1c1e; border-radius: 6px; overflow: hidden; border: 1px solid #333; margin-bottom: 20px; }
         .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4500, #ff8c00); box-shadow: 0 0 10px #ff4500; transition: width 0.1s linear; }
-        
-        #launch-btn { display: none; background: linear-gradient(90deg, #ff4500, #ff8c00); color: #fff; border: none; padding: 14px 36px; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; cursor: pointer; box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); transition: transform 0.1s ease, box-shadow 0.2s ease; margin: 0 auto; }
-        #launch-btn:hover { box-shadow: 0 0 25px rgba(255, 140, 0, 0.7); transform: scale(1.03); }
-        #launch-btn:active { transform: scale(0.98); }
-        
+        #launch-btn { display: none; background: linear-gradient(90deg, #ff4500, #ff8c00); color: #fff; border: none; padding: 14px 36px; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; cursor: pointer; box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); margin: 0 auto; }
+        #launch-btn:hover { box-shadow: 0 0 25px rgba(255, 140, 0, 0.7); }
         canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
     </style>
 </head>
@@ -32,10 +29,7 @@
 
     <script type="text/javascript">
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
-            if (window.name !== 'coi-reload') {
-                window.name = 'coi-reload';
-                window.location.reload();
-            }
+            if (window.name !== 'coi-reload') { window.name = 'coi-reload'; window.location.reload(); }
         }
 
         var stitchedPakData = null;
@@ -46,21 +40,21 @@
             print: console.log, printErr: console.error,
             locateFile: function(path) { return path; },
             setStatus: function(text) {
-                if (text && !text.includes('Running')) {
-                    document.getElementById('status').innerHTML = text;
-                }
+                if (text && !text.includes('Running')) { document.getElementById('status').innerHTML = text; }
             },
-            // CLIENT PAK UNPACKER MATRIX: Mounts the raw package byte array natively on engine boot
+            // MEMORY ALLOCATION LAYER: Maps files directly into memory before engine initialization
             preRun: [function() {
                 if (stitchedPakData) {
                     var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
                     if (fs && fs.createDataFile) {
                         try {
-                            // Mounts the uncompressed array directly to the primary system virtual directories
+                            fs.createFolder('/', 'cstrike', true, true);
+                            fs.createFolder('/', 'valve', true, true);
+                            
+                            // Unpack data chunks and map folders natively inside virtual memory
                             fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
-                            try { fs.createFolder('/', 'cstrike', true, true); } catch(e){}
                             fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
-                            console.log("Memory binary array successfully mounted to local workspace.");
+                            console.log("Virtual layout generation complete.");
                         } catch (e) { console.error(e); }
                     }
                 }
@@ -71,11 +65,8 @@
             document.getElementById('loader-container').style.display = 'none';
             const gameCanvas = document.getElementById('canvas');
             gameCanvas.style.display = 'block';
-            
-            window.focus();
-            gameCanvas.focus();
+            window.focus(); gameCanvas.focus();
 
-            // Load the engine launcher script natively out of your repo
             const script = document.createElement('script');
             script.async = true; script.type = 'module'; script.src = 'xash.js';
             document.body.appendChild(script);
@@ -93,7 +84,6 @@
                     await new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
                         xhr.open('GET', parts[i], true); xhr.responseType = 'arraybuffer';
-                        
                         xhr.onprogress = function(e) {
                             if (e.lengthComputable) {
                                 let basePct = (i / parts.length) * 100;
@@ -116,11 +106,7 @@
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedPakData = new Uint8Array(finalSize);
                 let offset = 0;
-                
-                for (let chunk of chunksData) { 
-                    stitchedPakData.set(chunk, offset); 
-                    offset += chunk.length; 
-                }
+                for (let chunk of chunksData) { stitchedPakData.set(chunk, offset); offset += chunk.length; }
                 
                 progressBar.parentNode.style.display = 'none';
                 counterElement.style.display = 'none';
