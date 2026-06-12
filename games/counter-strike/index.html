@@ -74,8 +74,8 @@
             }
         }
 
-        // Global variable to securely store the combined game bytes until the engine asks for them
         var stitchedZipData = null;
+        var gameFilesLoaded = false;
 
         // WebAssembly Core Parameters
         var Module = {
@@ -86,21 +86,33 @@
             locateFile: function(path) { return path; },
             
             setStatus: function(text) {
-                if (!text && stitchedZipData) {
+                var statusElement = document.getElementById('status');
+                if (text) {
+                    statusElement.innerHTML = text;
+                } else if (gameFilesLoaded) {
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
                 }
             },
 
-            // UNIVERSAL MOUNTING TECHNIQUE: Mounts the stitched file natively right inside the early engine launch cycle
+            // This ensures our runtime file is injected into whichever variable handles the FS environment
             preRun: [function() {
-                if (stitchedZipData) {
-                    // This dynamically handles whatever variable name Emscripten gave your file system helper
+                Module.addRunDependency('cs_load_block');
+                
+                const checkFS = setInterval(() => {
                     var fileSystemInstance = (typeof FS !== 'undefined') ? FS : (Module.FS || null);
-                    if (fileSystemInstance && fileSystemInstance.createDataFile) {
+                    if (fileSystemInstance && fileSystemInstance.createDataFile && stitchedZipData) {
+                        clearInterval(checkFS);
                         fileSystemInstance.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
+                        
+                        document.getElementById('status').innerHTML = "Launching Counter-Strike...";
+                        document.getElementById('progress-bar').style.width = "100%";
+                        gameFilesLoaded = true;
+                        
+                        // Clear the lock and boot the engine
+                        Module.removeRunDependency('cs_load_block');
                     }
-                }
+                }, 50);
             }]
         };
 
@@ -154,7 +166,7 @@
                 statusElement.innerHTML = "Stitching asset blocks together...";
                 progressBar.style.width = "99%";
                 
-                // Combine everything into a single layout array immediately
+                // Combine chunks into the container variable immediately
                 const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
                 stitchedZipData = new Uint8Array(finalSize);
                 let offset = 0;
@@ -163,16 +175,6 @@
                     offset += chunk.length;
                 }
                 
-                statusElement.innerHTML = "Launching Counter-Strike...";
-                progressBar.style.width = "100%";
-                
-                // Load the core engine script dynamically to trigger preRun and start the game loop
-                const script = document.createElement('script');
-                script.async = true;
-                script.type = 'module';
-                script.src = 'xash.js';
-                document.body.appendChild(script);
-                
             } catch (err) {
                 statusElement.innerHTML = "FILE TRANSFER ERROR";
                 statusElement.style.color = "#ff0000";
@@ -180,10 +182,11 @@
             }
         }
 
-        // Trigger download loop on window load
-        window.addEventListener('load', function() {
-            downloadAndStitchGame();
-        });
+        // Kick off chunk downloads immediately on load
+        downloadAndStitchGame();
     </script>
+    
+    <!-- Restoring the native engine script module container element -->
+    <script async type="module" src="xash.js"></script>
 </body>
 </html>
