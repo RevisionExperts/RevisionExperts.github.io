@@ -33,11 +33,14 @@
 
         window.Module = {
             canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup', '-pak', '/cstrike/cstrike.pak'],
+            arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log, printErr: console.error, locateFile: function(path) { return path; },
             
             setStatus: function(text) {
-                if (!text && stitchedPakData) {
+                if (text) {
+                    document.getElementById('status').innerHTML = text;
+                } else {
+                    // FORCE OVERRIDE: Instantly clears the screen overlay elements
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
                     window.focus(); document.getElementById('canvas').focus();
@@ -49,16 +52,15 @@
                     var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
                     if (fs && fs.createDataFile) {
                         try {
-                            fs.createFolder('/', 'cstrike', true, true);
-                            fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
-                            console.log("Game pak file tree mounted successfully.");
+                            // Mount the file as a flat loose engine root file asset
+                            fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
+                            console.log("Data package successfully mounted to engine core root.");
                         } catch (e) { console.error(e); }
                     }
                 }
             }]
         };
 
-        // THE SEQUENTIAL CHUNK STITCHER: Pulls your local pieces and glues them back together
         async function loadGamePackage() {
             const parts = ['cstrike.pak.2', 'cstrike.pak.3', 'cstrike.pak.4', 'cstrike.pak.5', 'cstrike.pak.6'];
             const statusElement = document.getElementById('status');
@@ -70,8 +72,7 @@
                 for (let i = 0; i < parts.length; i++) {
                     await new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
-                        xhr.open('GET', parts[i], true);
-                        xhr.responseType = 'arraybuffer';
+                        xhr.open('GET', parts[i], true); xhr.responseType = 'arraybuffer';
                         
                         xhr.onprogress = function(e) {
                             if (e.lengthComputable) {
@@ -80,17 +81,12 @@
                                 let totalPct = Math.min(Math.round(basePct + chunkPct), 99);
                                 
                                 statusElement.innerHTML = "Streaming Game Chunks... " + totalPct + "%";
-                                counterElement.innerHTML = "Downloading component " + (i + 2) + " of 5";
+                                counterElement.innerHTML = "Downloading component " + (i + 2) + " of 6";
                                 progressBar.style.width = totalPct + "%";
                             }
                         };
                         
-                        xhr.onload = function() {
-                            if (xhr.status === 200) {
-                                chunksData[i] = new Uint8Array(xhr.response);
-                                resolve();
-                            } else { reject(); }
-                        };
+                        xhr.onload = () => { if (xhr.status === 200) { chunksData[i] = new Uint8Array(xhr.response); resolve(); } else reject(); };
                         xhr.onerror = () => reject();
                         xhr.send(null);
                     });
@@ -107,8 +103,15 @@
                 statusElement.innerHTML = "Launching Counter-Strike Engine...";
                 progressBar.style.width = "100%";
                 
+                // Immediately append engine script tag to launch the canvas frame window
                 const script = document.createElement('script');
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
+                
+                script.onload = () => {
+                    document.getElementById('loader-container').style.display = 'none';
+                    document.getElementById('canvas').style.display = 'block';
+                    window.focus(); document.getElementById('canvas').focus();
+                };
                 document.body.appendChild(script);
                 
             } catch (err) { statusElement.innerHTML = "TRANSFER FAULT - TRY REFRESHING"; }
