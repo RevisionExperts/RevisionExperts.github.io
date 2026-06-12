@@ -74,6 +74,9 @@
             }
         }
 
+        // Global variable to securely store the combined game bytes until the engine asks for them
+        var stitchedZipData = null;
+
         // WebAssembly Core Parameters
         var Module = {
             canvas: document.getElementById('canvas'),
@@ -83,16 +86,25 @@
             locateFile: function(path) { return path; },
             
             setStatus: function(text) {
-                if (!text && gameFilesLoaded) {
+                if (!text && stitchedZipData) {
                     document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
                 }
-            }
+            },
+
+            // UNIVERSAL MOUNTING TECHNIQUE: Mounts the stitched file natively right inside the early engine launch cycle
+            preRun: [function() {
+                if (stitchedZipData) {
+                    // This dynamically handles whatever variable name Emscripten gave your file system helper
+                    var fileSystemInstance = (typeof FS !== 'undefined') ? FS : (Module.FS || null);
+                    if (fileSystemInstance && fileSystemInstance.createDataFile) {
+                        fileSystemInstance.createDataFile('/', 'cstrike.zip', stitchedZipData, true, false);
+                    }
+                }
+            }]
         };
 
-        var gameFilesLoaded = false;
-
-        // THE FIXED ASYNCHRONOUS STITCHER: Boots outside of preRun to prevent timing locks
+        // THE ASYNCHRONOUS STITCHER
         async function downloadAndStitchGame() {
             const parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
             const statusElement = document.getElementById('status');
@@ -142,31 +154,24 @@
                 statusElement.innerHTML = "Stitching asset blocks together...";
                 progressBar.style.width = "99%";
                 
-                // Wait for Module.FS to be defined by xash.js before creating the file
-                const checkFS = setInterval(() => {
-                    if (Module.FS && Module.FS.createDataFile) {
-                        clearInterval(checkFS);
-                        
-                        const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
-                        const combinedFile = new Uint8Array(finalSize);
-                        let offset = 0;
-                        for (let chunk of chunksData) {
-                            combinedFile.set(chunk, offset);
-                            offset += chunk.length;
-                        }
-                        
-                        // Create virtual file bundle inside WebAssembly memory space
-                        Module.FS_createDataFile('/', 'cstrike.zip', combinedFile, true, false);
-                        
-                        statusElement.innerHTML = "Launching Counter-Strike...";
-                        progressBar.style.width = "100%";
-                        gameFilesLoaded = true;
-                        
-                        // If setStatus was waiting, hide the loader immediately
-                        document.getElementById('loader-container').style.display = 'none';
-                        document.getElementById('canvas').style.display = 'block';
-                    }
-                }, 100);
+                // Combine everything into a single layout array immediately
+                const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
+                stitchedZipData = new Uint8Array(finalSize);
+                let offset = 0;
+                for (let chunk of chunksData) {
+                    stitchedZipData.set(chunk, offset);
+                    offset += chunk.length;
+                }
+                
+                statusElement.innerHTML = "Launching Counter-Strike...";
+                progressBar.style.width = "100%";
+                
+                // Load the core engine script dynamically to trigger preRun and start the game loop
+                const script = document.createElement('script');
+                script.async = true;
+                script.type = 'module';
+                script.src = 'xash.js';
+                document.body.appendChild(script);
                 
             } catch (err) {
                 statusElement.innerHTML = "FILE TRANSFER ERROR";
@@ -175,12 +180,10 @@
             }
         }
 
-        // Trigger the asynchronous download stream globally on window load
+        // Trigger download loop on window load
         window.addEventListener('load', function() {
             downloadAndStitchGame();
         });
     </script>
-    
-    <script async type="module" src="xash.js"></script>
 </body>
 </html>
