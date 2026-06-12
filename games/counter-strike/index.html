@@ -1,28 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counter-Strike 1.6 - RevisionExperts</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #0b0c0d;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #loader-container {
+            position: absolute;
+            text-align: center;
+            z-index: 10;
+            width: 320px;
+        }
+        #status {
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #ffa500;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .progress-track {
+            width: 100%;
+            height: 12px;
+            background-color: #1a1c1e;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4500, #ff8c00);
+            box-shadow: 0 0 10px #ff4500;
+            transition: width 0.1s linear;
+        }
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader-container">
+        <div id="status">Assembling Local Assets... 0%</div>
+        <div class="progress-track">
+            <div id="progress-bar" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+
     <script type="text/javascript">
-        // Self-contained Service Worker header unblocker
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                self.addEventListener('install', () => self.skipWaiting());
-                self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-                self.addEventListener('fetch', e => {
-                    if (e.request.cache === 'only-if-cached' && e.request.mode !== 'same-origin') return;
-                    e.respondWith(
-                        fetch(e.request).then(res => {
-                            if (res.status === 0) return res;
-                            const h = new Headers(res.headers);
-                            h.set('Cross-Origin-Opener-Policy', 'same-origin');
-                            h.set('Cross-Origin-Embedder-Policy', 'require-corp');
-                            return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
-                        })
-                    );
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'text/javascript' });
-            navigator.serviceWorker.register(URL.createObjectURL(blob)).then(reg => {
-                if (reg.active && !window.crossOriginIsolated) {
-                    window.location.reload();
-                }
-            });
+        // Clean native cross-origin header injection without relying on any external files
+        if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
+            const currentUrl = window.location.href;
+            navigator.serviceWorker.register(
+                'data:text/javascript;base64,' + btoa(`
+                    self.addEventListener('install', () => self.skipWaiting());
+                    self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+                    self.addEventListener('fetch', e => {
+                        if (e.request.cache === 'only-if-cached' && e.request.mode !== 'same-origin') return;
+                        e.respondWith(
+                            fetch(e.request).then(res => {
+                                if (res.status === 0) return res;
+                                const h = new Headers(res.headers);
+                                h.set('Cross-Origin-Opener-Policy', 'same-origin');
+                                h.set('Cross-Origin-Embedder-Policy', 'require-corp');
+                                return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
+                            })
+                        );
+                    });
+                `)
+            ).then(() => window.location.reload());
         }
 
         // WebAssembly Core Game Variable Configurations
@@ -34,30 +98,14 @@
             
             setStatus: function(text) {
                 var statusElement = document.getElementById('status');
-                var progressBar = document.getElementById('progress-bar');
-                var loaderContainer = document.getElementById('loader-container');
-                
-                var match = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-                if (match) {
-                    var currentStep = parseFloat(match[2]);
-                    var totalSteps = parseFloat(match[4]);
-                    var percentage = Math.round((currentStep / totalSteps) * 100);
-                    
-                    statusElement.innerHTML = "Downloading Full Game Components... " + percentage + "%";
-                    progressBar.style.width = percentage + "%";
-                } else {
-                    statusElement.innerHTML = text || "Unpacking secure asset filesystem...";
-                }
-                
                 if (!text) {
-                    loaderContainer.style.display = 'none';
+                    document.getElementById('loader-container').style.display = 'none';
                     document.getElementById('canvas').style.display = 'block';
                 }
             },
-            
-            // THE LOCAL STITCHER: Points directly to your repo chunks (No MediaFire links)
+
+            // THE LOCAL STITCHER: Combines your 4 split repository files back together
             preRun: [function() {
-                // This tracks your exact local file names sitting in your repo
                 var parts = ['cstrike.zip.2', 'cstrike.zip.3', 'cstrike.zip.4', 'cstrike.zip.5'];
                 var buffers = [];
                 var statusElement = document.getElementById('status');
@@ -65,8 +113,7 @@
                 
                 parts.forEach(function(part, index) {
                     var xhr = new XMLHttpRequest();
-                    // Pulls the file relative to your site path
-                    xhr.open('GET', part, false); 
+                    xhr.open('GET', part, false); // Fetches your local chunk file
                     xhr.responseType = 'arraybuffer';
                     xhr.send(null);
                     
@@ -77,7 +124,7 @@
                     progressBar.style.width = pct + "%";
                 });
                 
-                // Merges everything into the virtual file system
+                // Merge all chunks back into the core virtual file stream
                 var totalLength = buffers.reduce((acc, val) => acc + val.length, 0);
                 var combined = new Uint8Array(totalLength);
                 var offset = 0;
@@ -91,3 +138,7 @@
             locateFile: function(path) { return path; }
         };
     </script>
+    
+    <script async src="xash.js"></script>
+</body>
+</html>
