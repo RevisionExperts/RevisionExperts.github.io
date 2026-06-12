@@ -38,11 +38,18 @@
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
             print: console.log, printErr: console.error,
-            locateFile: function(path) { return path; },
+            
+            // FIX: Forces the script to locate xash.wasm inside your exact games/counter-strike subfolder URL path to clear the 404
+            locateFile: function(path) {
+                if (path.endsWith('.wasm') || path.endsWith('.js')) {
+                    return 'https://github.io' + path;
+                }
+                return path;
+            },
+            
             setStatus: function(text) {
                 if (text && !text.includes('Running')) { document.getElementById('status').innerHTML = text; }
             },
-            // MEMORY ALLOCATION LAYER: Maps files directly into memory before engine initialization
             preRun: [function() {
                 if (stitchedPakData) {
                     var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
@@ -50,11 +57,9 @@
                         try {
                             fs.createFolder('/', 'cstrike', true, true);
                             fs.createFolder('/', 'valve', true, true);
-                            
-                            // Unpack data chunks and map folders natively inside virtual memory
                             fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
                             fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
-                            console.log("Virtual layout generation complete.");
+                            console.log("Virtual memory layout map injected successfully.");
                         } catch (e) { console.error(e); }
                     }
                 }
