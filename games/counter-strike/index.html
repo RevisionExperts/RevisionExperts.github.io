@@ -5,63 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Counter-Strike 1.6 - RevisionExperts</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; display: flex; align-items: center; justify-content: center; }
-        canvas { width: 100vw; height: 100vh; display: block; background-color: #000; }
-        #loading-text { position: absolute; color: #ffa500; font-family: Arial, sans-serif; font-weight: bold; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; pointer-events: none; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background-color: #000; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        iframe { 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+            background-color: #000;
+        }
     </style>
 </head>
 <body>
 
-    <div id="loading-text">Initializing Game Directories...</div>
-    <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <!-- Native cross-origin isolation sandbox frame container -->
+    <iframe 
+        src="https://play-cs.com" 
+        allow="autoplay; fullscreen; keyboard; gamepad"
+        loading="eager">
+    </iframe>
 
-    <script type="text/javascript">
-        // Direct browser injection loop for cross-origin multi-threading parameters
-        if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
-            if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
-        }
-
-        // WebAssembly Core Game Variable Configurations
-        window.Module = {
-            canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup'],
-            print: console.log,
-            printErr: console.error,
-            locateFile: function(path) { return path; },
-            
-            setStatus: function(text) {
-                if (!text) {
-                    var textElement = document.getElementById('loading-text');
-                    if (textElement) textElement.style.display = 'none';
-                    window.focus();
-                    document.getElementById('canvas').focus();
-                }
-            },
-
-            // VIRTUAL MANIFEST ENGINE: Tells the file system how to mount and read the raw folders
-            preRun: [function() {
-                var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
-                if (fs) {
-                    try {
-                        // Creates the empty virtual folders so the browser knows they are real directories
-                        fs.createFolder('/', 'cstrike', true, true);
-                        fs.createFolder('/', 'valve', true, true);
-                        console.log("Virtual file manifest directories successfully initialized.");
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
-            }]
-        };
-
-        // This triggers the native engine assembly script dynamically on window load
-        window.addEventListener('load', function() {
-            const script = document.createElement('script');
-            script.async = true;
-            script.type = 'module';
-            script.src = 'xash.js';
-            document.body.appendChild(script);
-        });
-    </script>
 </body>
 </html>
