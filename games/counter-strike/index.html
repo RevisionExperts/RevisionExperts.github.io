@@ -105,7 +105,7 @@
                 for (let chunk of chunksData) { stitchedPakData.set(chunk, offset); offset += chunk.length; }
                 
                 statusElement.innerHTML = "Launching Counter-Strike Engine...";
-                progressBar.style.width = "100wn%";
+                progressBar.style.width = "100%";
                 
                 const script = document.createElement('script');
                 script.async = true; script.type = 'module'; script.src = 'xash.js';
