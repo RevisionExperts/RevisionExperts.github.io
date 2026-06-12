@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -29,7 +29,6 @@
             printErr: console.error,
             locateFile: function(path) { return path; },
             
-            // This hook handles hiding the text and revealing the interactive menu canvas
             setStatus: function(text) {
                 if (!text) {
                     var textElement = document.getElementById('loading-text');
@@ -37,7 +36,22 @@
                     window.focus();
                     document.getElementById('canvas').focus();
                 }
-            }
+            },
+
+            // VIRTUAL MANIFEST ENGINE: Tells the file system how to mount and read the raw folders
+            preRun: [function() {
+                var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
+                if (fs) {
+                    try {
+                        // Creates the empty virtual folders so the browser knows they are real directories
+                        fs.createFolder('/', 'cstrike', true, true);
+                        fs.createFolder('/', 'valve', true, true);
+                        console.log("Virtual file manifest directories successfully initialized.");
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            }]
         };
 
         // This triggers the native engine assembly script dynamically on window load
@@ -50,3 +64,4 @@
         });
     </script>
 </body>
+</html>
