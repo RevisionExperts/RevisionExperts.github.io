@@ -18,8 +18,6 @@
         
         canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
     </style>
-    <!-- Loads an optimized unzipping library natively from an alternate stable source node -->
-    <script src="https://jsdelivr.net" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -44,74 +42,46 @@
 
         window.Module = {
             canvas: document.getElementById('canvas'),
-            arguments: ['-game', 'cstrike', '-nostartup'],
+            arguments: ['-game', 'cstrike', '-nostartup', '-pak', 'cstrike.pak'],
             print: console.log, printErr: console.error,
+            
+            // CLEAN NATIVE RESOLUTION: Points directly to your repo folder, no external domains
             locateFile: function(path) {
-                if (path.endsWith('.wasm')) { return 'https://github.io' + path; }
                 return path;
             },
+            
             setStatus: function(text) {
                 if (text && !text.includes('Running')) {
                     document.getElementById('status').innerHTML = text;
                 }
-            }
-        };
-
-        // AUTO-EXTRACTOR: Safely extracts files directly into the virtual system drive tree on boot
-        async function unpackStitchedZip(arrayBuffer) {
-            const statusElement = document.getElementById('status');
-            statusElement.innerHTML = "Unpacking internal files... please wait";
-            
-            try {
-                const zipInstance = new JSZip();
-                const zip = await zipInstance.loadAsync(arrayBuffer);
-                const fileNames = Object.keys(zip.files);
-                
-                let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
-                
-                for (let name of fileNames) {
-                    if (!zip.files[name].dir) {
-                        const fileData = await zip.files[name].async('uint8array');
-                        const pathParts = name.split('/');
-                        let currentPath = '/';
-                        
-                        // Rebuild your folder directory links dynamically
-                        for (let i = 0; i < pathParts.length - 1; i++) {
-                            currentPath += pathParts[i] + '/';
-                            try { fs.createFolder(currentPath.slice(0, -1), pathParts[i], true, true); } catch(e){}
-                        }
-                        fs.createDataFile('/', name, fileData, true, true);
+            },
+            preRun: [function() {
+                if (stitchedPakData) {
+                    var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
+                    if (fs && fs.createDataFile) {
+                        try {
+                            fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
+                            try { fs.createFolder('/', 'cstrike', true, true); } catch(e){}
+                            fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
+                            console.log("Assets safely mapped locally.");
+                        } catch (e) { console.error(e); }
                     }
                 }
-                
-                console.log("Virtual layout extraction complete.");
-                
-                // Hide loading screen panel and open up graphics viewports
-                document.getElementById('loader-container').style.display = 'none';
-                const gameCanvas = document.getElementById('canvas');
-                gameCanvas.style.display = 'block';
-                window.focus(); gameCanvas.focus();
+            }]
+        };
 
-                // Boot the final engine script module safely
-                const script = document.createElement('script');
-                script.async = true; script.type = 'module'; script.src = 'xash.js';
-                document.body.appendChild(script);
-                
-            } catch (err) {
-                console.error(err);
-                statusElement.innerHTML = "EXTRACTION SYSTEM FAULT";
-            }
-        }
-
-        async function startCoreGameViewport() {
-            const statusElement = document.getElementById('status');
-            document.getElementById('launch-btn').style.display = 'none';
+        function startCoreGameViewport() {
+            document.getElementById('loader-container').style.display = 'none';
+            const gameCanvas = document.getElementById('canvas');
+            gameCanvas.style.display = 'block';
             
-            if (stitchedPakData) {
-                await unpackStitchedZip(stitchedPakData.buffer);
-            } else {
-                statusElement.innerHTML = "DATA ARRAY EMPTY - ERROR";
-            }
+            window.focus();
+            gameCanvas.focus();
+
+            // Loads your local file xash.js sitting right in your repo folder
+            const script = document.createElement('script');
+            script.async = true; script.type = 'module'; script.src = 'xash.js';
+            document.body.appendChild(script);
         }
 
         async function loadGamePackage() {
@@ -126,7 +96,6 @@
                     await new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
                         xhr.open('GET', parts[i], true); xhr.responseType = 'arraybuffer';
-                        
                         xhr.onprogress = function(e) {
                             if (e.lengthComputable) {
                                 let basePct = (i / parts.length) * 100;
