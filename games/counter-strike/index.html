@@ -5,123 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Counter-Strike 1.6 - RevisionExperts</title>
     <style>
-        body { margin: 0; background-color: #0b0c0d; color: #fff; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; user-select: none; }
-        #loader-container { position: absolute; text-align: center; z-index: 10; width: 340px; }
-        #status { margin-bottom: 5px; font-size: 14px; color: #ffa500; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        #data-counter { margin-bottom: 15px; font-size: 12px; color: #888; font-family: monospace; }
-        .progress-track { width: 100%; height: 12px; background-color: #1a1c1e; border-radius: 6px; overflow: hidden; border: 1px solid #333; margin-bottom: 20px; }
-        .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4500, #ff8c00); box-shadow: 0 0 10px #ff4500; transition: width 0.1s linear; }
-        #launch-btn { display: none; background: linear-gradient(90deg, #ff4500, #ff8c00); color: #fff; border: none; padding: 14px 36px; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; cursor: pointer; box-shadow: 0 0 15px rgba(255, 69, 0, 0.4); margin: 0 auto; }
-        #launch-btn:hover { box-shadow: 0 0 25px rgba(255, 140, 0, 0.7); }
-        canvas { width: 100vw; height: 100vh; display: none; background-color: #000; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; display: flex; align-items: center; justify-content: center; }
+        canvas { width: 100vw; height: 100vh; display: block; background-color: #000; }
+        #loading-text { position: absolute; color: #ffa500; font-family: Arial, sans-serif; font-weight: bold; text-transform: uppercase; font-size: 14px; letter-spacing: 1px; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <div id="loader-container">
-        <div id="status">Streaming Game Engine...</div>
-        <div id="data-counter">Initializing Asset Matrix...</div>
-        <div class="progress-track"><div id="progress-bar" class="progress-fill"></div></div>
-        <button id="launch-btn" onclick="startCoreGameViewport()">Launch Game</button>
-    </div>
-
-    <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <div id="loading-text">Loading Classic Assets...</div>
+    <canvas id="canvas" onclick="window.focus(); this.focus();" oncontextmenu="event.preventDefault()"></canvas>
 
     <script type="text/javascript">
+        // Native script engine context initialization parameters
         if (!window.crossOriginIsolated && window.location.protocol !== 'file:') {
-            if (window.name !== 'coi-reload') { window.name = 'coi-reload'; window.location.reload(); }
+            if (window.name !== 'coi-loop') { window.name = 'coi-loop'; window.location.reload(); }
         }
-
-        var stitchedPakData = null;
 
         window.Module = {
             canvas: document.getElementById('canvas'),
             arguments: ['-game', 'cstrike', '-nostartup'],
-            print: console.log, printErr: console.error,
+            print: console.log,
+            printErr: console.error,
             
-            // FIX: Forces the script to locate xash.wasm inside your exact games/counter-strike subfolder URL path to clear the 404
+            // Absolute path lock: Points the compiler directly to your games subfolder tree layout
             locateFile: function(path) {
-                if (path.endsWith('.wasm') || path.endsWith('.js')) {
-                    return 'https://github.io' + path;
-                }
-                return path;
+                return 'https://github.io' + path;
             },
             
             setStatus: function(text) {
-                if (text && !text.includes('Running')) { document.getElementById('status').innerHTML = text; }
-            },
-            preRun: [function() {
-                if (stitchedPakData) {
-                    var fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || window.FS || null);
-                    if (fs && fs.createDataFile) {
-                        try {
-                            fs.createFolder('/', 'cstrike', true, true);
-                            fs.createFolder('/', 'valve', true, true);
-                            fs.createDataFile('/', 'cstrike.pak', stitchedPakData, true, false);
-                            fs.createDataFile('/cstrike', 'cstrike.pak', stitchedPakData, true, false);
-                            console.log("Virtual memory layout map injected successfully.");
-                        } catch (e) { console.error(e); }
-                    }
+                if (!text) {
+                    var textElement = document.getElementById('loading-text');
+                    if (textElement) textElement.style.display = 'none';
+                    window.focus();
+                    document.getElementById('canvas').focus();
                 }
-            }]
+            }
         };
 
-        function startCoreGameViewport() {
-            document.getElementById('loader-container').style.display = 'none';
-            const gameCanvas = document.getElementById('canvas');
-            gameCanvas.style.display = 'block';
-            window.focus(); gameCanvas.focus();
-
+        window.addEventListener('load', function() {
             const script = document.createElement('script');
-            script.async = true; script.type = 'module'; script.src = 'xash.js';
+            script.async = true;
+            script.type = 'module';
+            script.src = 'xash.js';
             document.body.appendChild(script);
-        }
-
-        async function loadGamePackage() {
-            const parts = ['cstrike.pak.2', 'cstrike.pak.3', 'cstrike.pak.4', 'cstrike.pak.5', 'cstrike.pak.6'];
-            const statusElement = document.getElementById('status');
-            const progressBar = document.getElementById('progress-bar');
-            const counterElement = document.getElementById('data-counter');
-            let chunksData = [];
-            
-            try {
-                for (let i = 0; i < parts.length; i++) {
-                    await new Promise((resolve, reject) => {
-                        const xhr = new XMLHttpRequest();
-                        xhr.open('GET', parts[i], true); xhr.responseType = 'arraybuffer';
-                        xhr.onprogress = function(e) {
-                            if (e.lengthComputable) {
-                                let basePct = (i / parts.length) * 100;
-                                let chunkPct = (e.loaded / e.total) * (100 / parts.length);
-                                let totalPct = Math.min(Math.round(basePct + chunkPct), 99);
-                                statusElement.innerHTML = "Streaming Game Chunks... " + totalPct + "%";
-                                counterElement.innerHTML = "Downloading piece " + (i + 2) + " of 6";
-                                progressBar.style.width = totalPct + "%";
-                            }
-                        };
-                        xhr.onload = () => { if (xhr.status === 200) { chunksData[i] = new Uint8Array(xhr.response); resolve(); } else reject(); };
-                        xhr.onerror = () => reject();
-                        xhr.send(null);
-                    });
-                }
-                
-                statusElement.innerHTML = "Stitching asset blocks together...";
-                progressBar.style.width = "99%";
-                
-                const finalSize = chunksData.reduce((acc, chunk) => acc + chunk.length, 0);
-                stitchedPakData = new Uint8Array(finalSize);
-                let offset = 0;
-                for (let chunk of chunksData) { stitchedPakData.set(chunk, offset); offset += chunk.length; }
-                
-                progressBar.parentNode.style.display = 'none';
-                counterElement.style.display = 'none';
-                statusElement.innerHTML = "Game files ready!";
-                document.getElementById('launch-btn').style.display = 'block';
-                
-            } catch (err) { statusElement.innerHTML = "TRANSFER FAULT - TRY REFRESHING"; }
-        }
-
-        window.addEventListener('load', loadGamePackage);
+        });
     </script>
 </body>
 </html>
