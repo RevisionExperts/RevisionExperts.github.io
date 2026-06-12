@@ -38,23 +38,25 @@
             }
         };
 
-        // FIXED TIMING ENGINE: Waits for the filesystem to initialize before mounting
+        // UNIVERSAL TIMING MATRIX: Scans all possible Emscripten internal file system variables
         async function unpackGameArchive(buffer) {
             const statusElement = document.getElementById('status');
             statusElement.innerHTML = "Initializing local game system...";
             
-            // Loop checker to wait for the engine filesystem to wake up
             const checkFS = setInterval(() => {
-                let fs = (typeof FS !== 'undefined') ? FS : (window.Module.FS || null);
+                // Tries standard FS, Module level FS, window level FS, and wrapped engine FS contexts
+                let fs = (typeof FS !== 'undefined') ? FS : 
+                         (window.Module && window.Module.FS ? window.Module.FS : 
+                         (window.FS ? window.FS : 
+                         (typeof Module !== 'undefined' && Module.FS ? Module.FS : null)));
                 
                 if (fs && fs.createDataFile) {
-                    clearInterval(checkFS); // Stop waiting!
+                    clearInterval(checkFS); // Found it! Stop looping.
                     
                     try {
                         fs.createDataFile('/', 'cstrike.zip', buffer, true, true);
                         console.log("Archive successfully mounted.");
                         
-                        // Hide loading overlay and turn on the canvas graphics window
                         document.getElementById('loader-container').style.display = 'none';
                         const gameCanvas = document.getElementById('canvas');
                         gameCanvas.style.display = 'block';
@@ -65,7 +67,7 @@
                         statusElement.innerHTML = "Mount Error - Try Refreshing";
                     }
                 }
-            }, 50); // Checks every 50 milliseconds
+            }, 50); 
         }
 
         async function downloadAndStitchGame() {
