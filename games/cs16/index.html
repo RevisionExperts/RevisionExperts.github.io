@@ -24,7 +24,7 @@
 
     async function main() {
         const files = {}
-        const res = await fetch('./valve.zip')
+        const res = await fetch('https://drive.google.com/uc?export=download&id=1F8lpSjqTYPQpQ725YfTXVT0_tN0f1Y5n')
         const zip = await JSZip.loadAsync(await res.arrayBuffer());
 
         await Promise.all(Object.keys(zip.files).map(async p => {
