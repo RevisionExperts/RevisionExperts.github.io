@@ -41,6 +41,14 @@
      image="https://sites.cortland.edu/dragon-chronicle/wp-content/uploads/sites/43/2025/02/Webfishing_logo.png"
      bg_color="#82C8E5" %}
 
+  <!-- ULTRAKILL -->
+  {% include game_card.html 
+     location="/games/ultrakill" 
+     name="ULTRAKILL" 
+     description="BLOOD IS FUEL" 
+     image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT0gj1uUkzcGq6dbsvuO4A8qMSbIrusfY3aag3rzJlvXw&s"
+     bg_color="#ED2100" %}
+
   <!-- 5. Counter-Strike -->
   {% include game_card.html 
      location="/games/cs16" 
