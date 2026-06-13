@@ -135,12 +135,13 @@
 
             try {
                 updateStatus("Fetching game assets...");
+                // Download all three parts using absolute URLs
                 const [p1, p2, p3] = await Promise.all([
-                    fetch('./valve.zip.001').then(r => r.arrayBuffer()),
-                    fetch('./valve.zip.002').then(r => r.arrayBuffer()),
-                    fetch('./valve.zip.003').then(r => r.arrayBuffer())
+                    fetch('https://revisionexperts.github.io/games/cs/valve.zip.001').then(r => r.arrayBuffer()),
+                    fetch('https://revisionexperts.github.io/games/cs/valve.zip.002').then(r => r.arrayBuffer()),
+                    fetch('https://revisionexperts.github.io/games/cs/valve.zip.003').then(r => r.arrayBuffer())
                 ]);
-
+                
                 // Combine the parts back into one single file in memory
                 const combinedBuffer = new Uint8Array(p1.byteLength + p2.byteLength + p3.byteLength);
                 combinedBuffer.set(new Uint8Array(p1), 0);
