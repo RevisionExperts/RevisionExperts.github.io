@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Loading</title>
+    <title>CS1.6</title>
     <style>
         canvas {
             width: 100vw;
@@ -10,7 +10,6 @@
             left: 0;
             position: fixed;
         }
-
         body {
             margin: 0;
         }
@@ -32,17 +31,7 @@
             './valve.zip.006'
         ];
 
-      async function main() {
-    const chunks = [
-        './valve.zip.001',
-        './valve.zip.002',
-        './valve.zip.003',
-        './valve.zip.004',
-        './valve.zip.005',
-        './valve.zip.006'
-    ];
-
-    console.log('Downloading chunks...');
+        console.log('Downloading chunks...');
         const buffers = [];
         for (let i = 0; i < chunks.length; i++) {
             const res = await fetch(chunks[i]);
@@ -50,8 +39,7 @@
             console.log(`Chunk ${i+1} downloaded: ${buffer.byteLength} bytes`);
             buffers.push(buffer);
         }
-    
-        // Combine sequentially
+
         const totalSize = buffers.reduce((acc, b) => acc + b.byteLength, 0);
         console.log(`Total size: ${totalSize} bytes`);
         const combined = new Uint8Array(totalSize);
