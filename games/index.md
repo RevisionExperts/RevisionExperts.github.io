@@ -43,8 +43,8 @@
 
   <!-- 5. Counter-Strike -->
   {% include game_card.html 
-     location="/games/counter-strike" 
-     name="Counter-Strike" 
+     location="/games/cs" 
+     name="Counter-Strike 1.6" 
      description="Tactical first-person shooter" 
      image="https://cdn.akamai.steamstatic.com/steam/apps/730/capsule_616x353.jpg?t=1733170852"
      bg_color="#1A1A1A" %}
