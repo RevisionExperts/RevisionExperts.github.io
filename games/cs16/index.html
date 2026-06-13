@@ -23,22 +23,45 @@
     import JSZip from 'https://cdn.skypack.dev/jszip@3.10.1';
 
     async function main() {
-        const files = {}
-        const res = await fetch('https://archive.org/download/valve_202606/valve.zip')
+        const chunks = [
+            './valve_2.zip.001',
+            './valve_2.zip.002',
+            './valve_2.zip.003',
+            './valve_2.zip.004',
+            './valve_2.zip.005'
+        ];
 
-        const zip = await JSZip.loadAsync(await res.arrayBuffer());
+        console.log('Downloading chunks...');
+        const buffers = await Promise.all(
+            chunks.map(async (url, i) => {
+                const res = await fetch(url);
+                console.log(`Chunk ${i+1} downloaded`);
+                return res.arrayBuffer();
+            })
+        );
+
+        // Combine all chunks into one
+        const totalSize = buffers.reduce((acc, b) => acc + b.byteLength, 0);
+        const combined = new Uint8Array(totalSize);
+        let offset = 0;
+        for (const buffer of buffers) {
+            combined.set(new Uint8Array(buffer), offset);
+            offset += buffer.byteLength;
+        }
+
+        console.log('Loading zip...');
+        const files = {};
+        const zip = await JSZip.loadAsync(combined);
 
         await Promise.all(Object.keys(zip.files).map(async p => {
-            const file = zip.files[p]
+            const file = zip.files[p];
             if (file.dir) return;
-
             const path = `/rodir/${p}`;
-
-            files[path] = await file.async("uint8array")
-        }))
+            files[path] = await file.async("uint8array");
+        }));
 
         Xash3D({
-            arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus',  '0'],
+            arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus', '0'],
             canvas: document.getElementById('canvas'),
             ctx: document.getElementById('canvas')
                 .getContext('webgl2', {
@@ -56,15 +79,12 @@
                 "/rwdir/filesystem_stdio.so",
             ],
             onRuntimeInitialized: function () {
-                Object.keys(files)
-                    .forEach(k => {
-                        const dir = k.split('/')
-                            .slice(0, -1)
-                            .join('/');
-                        this.FS.mkdirTree(dir);
-                        this.FS.writeFile(k, files[k]);
-                    })
-                this.FS.chdir('/rodir')
+                Object.keys(files).forEach(k => {
+                    const dir = k.split('/').slice(0, -1).join('/');
+                    this.FS.mkdirTree(dir);
+                    this.FS.writeFile(k, files[k]);
+                });
+                this.FS.chdir('/rodir');
             },
             locateFile: (p) => {
                 switch (p) {
@@ -82,13 +102,13 @@
                     case 'cl_dlls/client_emscripten_wasm32.wasm':
                         return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/cl_dll/client_emscripten_wasm32.wasm'
                     default:
-                        return p
+                        return p;
                 }
             },
-        })
+        });
     }
 
-    main()
+    main();
 </script>
 </body>
 </html>
