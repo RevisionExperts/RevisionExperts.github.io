@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Loading</title>
+    <title>CS1.6</title>
     <style>
         canvas {
             width: 100vw;
@@ -10,7 +10,6 @@
             left: 0;
             position: fixed;
         }
-
         body {
             margin: 0;
         }
@@ -33,16 +32,16 @@
         ];
 
         console.log('Downloading chunks...');
-        const buffers = await Promise.all(
-            chunks.map(async (url, i) => {
-                const res = await fetch(url);
-                console.log(`Chunk ${i+1} downloaded`);
-                return res.arrayBuffer();
-            })
-        );
+        const buffers = [];
+        for (let i = 0; i < chunks.length; i++) {
+            const res = await fetch(chunks[i]);
+            const buffer = await res.arrayBuffer();
+            console.log(`Chunk ${i+1} downloaded: ${buffer.byteLength} bytes`);
+            buffers.push(buffer);
+        }
 
-        // Combine all chunks into one
         const totalSize = buffers.reduce((acc, b) => acc + b.byteLength, 0);
+        console.log(`Total size: ${totalSize} bytes`);
         const combined = new Uint8Array(totalSize);
         let offset = 0;
         for (const buffer of buffers) {
