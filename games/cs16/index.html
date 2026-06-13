@@ -1,106 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>CS1.6</title>
-    <style>
-        canvas {
-            width: 100vw;
-            height: 100vh;
-            top: 0;
-            left: 0;
-            position: fixed;
-        }
-        body {
-            margin: 0;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/raw.js"></script>
-</head>
-<body>
-<canvas id="canvas"></canvas>
-<script type="module">
-    import JSZip from 'https://cdn.skypack.dev/jszip@3.10.1';
-
-    async function main() {
-        const chunks = [
-            './valve.zip.001',
-            './valve.zip.002',
-            './valve.zip.003',
-            './valve.zip.004',
-            './valve.zip.005'
-        ];
-
-        console.log('Downloading chunks...');
-        const buffers = [];
-        for (let i = 0; i < chunks.length; i++) {
-            const res = await fetch(chunks[i]);
-            const buffer = await res.arrayBuffer();
-            console.log(`Chunk ${i+1} downloaded: ${buffer.byteLength} bytes`);
-            buffers.push(buffer);
-        }
-
-        const totalSize = buffers.reduce((acc, b) => acc + b.byteLength, 0);
-        console.log(`Total size: ${totalSize} bytes`);
-        const combined = new Uint8Array(totalSize);
-        let offset = 0;
-        for (const buffer of buffers) {
-            combined.set(new Uint8Array(buffer), offset);
-            offset += buffer.byteLength;
-        }
-
-        console.log('Loading zip...');
-        const files = {};
-        const zip = await JSZip.loadAsync(combined);
-
-        await Promise.all(Object.keys(zip.files).map(async p => {
-            const file = zip.files[p];
-            if (file.dir) return;
-            const path = `/rodir/${p}`;
-            files[path] = await file.async("uint8array");
-        }));
-
-        Xash3D({
-            arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus', '0', '-ref', 'gles3compat'],
-            canvas: document.getElementById('canvas'),
-            dynamicLibraries: [
-                "filesystem_stdio.wasm",
-                "libref_gles3compat.wasm",
-                "cl_dlls/menu_emscripten_wasm32.wasm",
-                "dlls/cs_emscripten_wasm32.so",
-                "cl_dlls/client_emscripten_wasm32.wasm",
-                "/rwdir/filesystem_stdio.so",
-            ],
-            onRuntimeInitialized: function () {
-                Object.keys(files).forEach(k => {
-                    const dir = k.split('/').slice(0, -1).join('/');
-                    this.FS.mkdirTree(dir);
-                    this.FS.writeFile(k, files[k]);
-                });
-                this.FS.chdir('/rodir');
-            },
-            locateFile: (p) => {
-                switch (p) {
-                    case 'xash.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/xash.wasm'
-                    case '/rwdir/filesystem_stdio.so':
-                    case 'filesystem_stdio.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/filesystem_stdio.wasm'
-                    case 'libref_gles3compat.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/libref_gles3compat.wasm'
-                    case 'cl_dlls/menu_emscripten_wasm32.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/cl_dll/menu_emscripten_wasm32.wasm'
-                    case 'dlls/cs_emscripten_wasm32.so':
-                        return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/dlls/cs_emscripten_wasm32.so'
-                    case 'cl_dlls/client_emscripten_wasm32.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/cl_dll/client_emscripten_wasm32.wasm'
-                    default:
-                        return p;
-                }
-            },
-        });
-    }
-
-    main();
-</script>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/webXash/assets/hl-bright-0dAELJJ6.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebXash</title>
+    <script type="module" crossorigin src="/webXash/assets/index-CGM_79We.js"></script>
+    <link rel="stylesheet" crossorigin href="/webXash/assets/index-BMfMaWeg.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
 </html>
