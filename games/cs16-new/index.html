@@ -24,7 +24,8 @@
 
     async function main() {
         const files = {}
-        const res = await fetch('./valve.zip')
+        const zipUrl = 'https://huggingface.co';
+        const res = await fetch(zipUrl, { mode: 'cors' })
         const zip = await JSZip.loadAsync(await res.arrayBuffer());
 
         await Promise.all(Object.keys(zip.files).map(async p => {
