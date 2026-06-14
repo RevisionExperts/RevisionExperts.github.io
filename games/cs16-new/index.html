@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Loading</title>
+    <title>Counter-Strike 1.6</title>
     <style>
         canvas {
             width: 100vw;
@@ -15,53 +15,70 @@
         body {
             margin: 0;
             background: #000;
+            overflow: hidden;
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #4CAF50;
+            font-family: sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 99;
+            pointer-events: none;
         }
     </style>
+    <!-- Core game engine wrapper -->
     <script src="https://unpkg.com"></script>
+    <!-- Offline-safe unzip worker -->
     <script src="https://cloudflare.com"></script>
 </head>
 <body>
-<canvas id="canvas"></canvas>
+
+<div id="loading">Loading Files to RAM... Please Wait</div>
+<canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+
 <script>
     async function main() {
-        const files = {}
+        const files = {};
+        const statusText = document.getElementById('loading');
         
-        // UNBLOCKED API ENDPOINT: Uses GitHub's public developer API which natively allows CORS downloads
-        const apiUrl = 'https://github.com';
+        // PULLS LOCALLY: Zero CORS blocks, zero timeouts, zero external proxy layers
+        const zipUrl = './valve.zip';
         
-        console.log("Streaming Counter-Strike files from GitHub API directly into RAM...");
+        console.log("Streaming local 98MB archive straight into browser system memory...");
         
         try {
-            // 1. Fetch the raw asset metadata via the open API
-            const response = await fetch(apiUrl, {
-                headers: { 'Accept': 'application/vnd.github.v3.raw' } // Forces GitHub to return the unblocked raw binary stream
-            });
+            statusText.innerText = "Downloading assets into browser RAM...";
+            const res = await fetch(zipUrl);
+            if (!res.ok) throw new Error("valve.zip was not found in this folder directory.");
             
-            if (!response.ok) throw new Error("GitHub API download stream failed.");
-            
-            const buffer = await response.arrayBuffer();
-            const zip = await window.JSZip.loadAsync(buffer);    
+            statusText.innerText = "Unpacking archive directly inside memory...";
+            const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
 
+            // Extract the compressed files into the virtual system directory map
             await Promise.all(Object.keys(zip.files).map(async p => {
-                const file = zip.files[p]
+                const file = zip.files[p];
                 if (file.dir) return;
 
                 const path = `/rodir/${p}`;
                 files[path] = await file.async("uint8array");
             }));
 
-            console.log("Unpacking complete. Launching Xash3D engine wrapper...");
+            statusText.innerText = "Launching Xash3D Engine Canvas Loop...";
+            statusText.style.display = 'none';
 
             Xash3D({
-                arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus',  '0'],
+                arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus', '0'],
                 canvas: document.getElementById('canvas'),
-                ctx: document.getElementById('canvas')
-                    .getContext('webgl2', {
-                        alpha: false,
-                        depth: true,
-                        stencil: true,
-                        antialias: true
-                    }),
+                ctx: document.getElementById('canvas').getContext('webgl2', {
+                    alpha: false,
+                    depth: true,
+                    stencil: true,
+                    antialias: true
+                }),
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
                     "libref_gles3compat.wasm",
@@ -71,42 +88,43 @@
                     "/rwdir/filesystem_stdio.so",
                 ],
                 onRuntimeInitialized: function () {
-                    Object.keys(files)
-                        .forEach(k => {
-                            const dir = k.split('/')
-                                .slice(0, -1)
-                                .join('/');
-                            this.FS.mkdirTree(dir);
-                            this.FS.writeFile(k, files[k]);
-                        })
-                    this.FS.chdir('/rodir')
+                    // Mount the file buffers into the engine's virtual directory map
+                    Object.keys(files).forEach(k => {
+                        const dir = k.split('/').slice(0, -1).join('/');
+                        this.FS.mkdirTree(dir);
+                        this.FS.writeFile(k, files[k]);
+                    });
+                    this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
+                    // Pull compiled game modules via stable, unblocked mirrors
                     switch (p) {
                         case 'xash.wasm':
-                            return 'https://unpkg.com'
+                            return 'https://unpkg.com';
                         case '/rwdir/filesystem_stdio.so':
-                    case 'filesystem_stdio.wasm':
-                        return 'https://unpkg.com'
+                        case 'filesystem_stdio.wasm':
+                            return 'https://unpkg.com';
                         case 'libref_gles3compat.wasm':
-                            return 'https://unpkg.com'
+                            return 'https://unpkg.com';
                         case 'cl_dlls/menu_emscripten_wasm32.wasm':
-                            return 'https://unpkg.com'
+                            return 'https://unpkg.com';
                         case 'dlls/cs_emscripten_wasm32.so':
-                            return 'https://unpkg.com'
+                            return 'https://unpkg.com';
                         case 'cl_dlls/client_emscripten_wasm32.wasm':
-                            return 'https://unpkg.com'
+                            return 'https://unpkg.com';
                         default:
-                            return p
+                            return p;
                     }
                 },
             });
         } catch (err) {
-            console.error("Fatal game boot error:", err.message);
+            statusText.style.color = "#ff3333";
+            statusText.innerText = "Fatal Memory Load Failure: " + err.message;
+            console.error(err);
         }
     }
 
-    main()
+    main();
 </script>
 </body>
 </html>
