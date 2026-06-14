@@ -23,38 +23,23 @@
 <body>
 <canvas id="canvas"></canvas>
 <script>
-    function downloadAssets(url) {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
-            xhr.responseType = 'arraybuffer'; // Forces data straight into browser RAM array
-
-            xhr.onload = function() {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    resolve(xhr.response);
-                } else {
-                    reject(new Error('GitHub asset stream failed with status ' + xhr.status));
-                }
-            };
-
-            xhr.onerror = function() {
-                reject(new Error('Network connection error during RAM buffering.'));
-            };
-
-            xhr.send();
-        });
-    }
-
     async function main() {
         const files = {}
         
-        // Target your exact published GitHub Release file
-        const zipUrl = 'https://github.com';
+        // UNBLOCKED API ENDPOINT: Uses GitHub's public developer API which natively allows CORS downloads
+        const apiUrl = 'https://github.com';
         
-        console.log("Streaming Counter-Strike files from GitHub Release directly into RAM...");
+        console.log("Streaming Counter-Strike files from GitHub API directly into RAM...");
         
         try {
-            const buffer = await downloadAssets(zipUrl);
+            // 1. Fetch the raw asset metadata via the open API
+            const response = await fetch(apiUrl, {
+                headers: { 'Accept': 'application/vnd.github.v3.raw' } // Forces GitHub to return the unblocked raw binary stream
+            });
+            
+            if (!response.ok) throw new Error("GitHub API download stream failed.");
+            
+            const buffer = await response.arrayBuffer();
             const zip = await window.JSZip.loadAsync(buffer);    
 
             await Promise.all(Object.keys(zip.files).map(async p => {
@@ -101,8 +86,8 @@
                         case 'xash.wasm':
                             return 'https://unpkg.com'
                         case '/rwdir/filesystem_stdio.so':
-                        case 'filesystem_stdio.wasm':
-                            return 'https://unpkg.com'
+                    case 'filesystem_stdio.wasm':
+                        return 'https://unpkg.com'
                         case 'libref_gles3compat.wasm':
                             return 'https://unpkg.com'
                         case 'cl_dlls/menu_emscripten_wasm32.wasm':
