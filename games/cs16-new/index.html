@@ -1,90 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS 1.6 Web Client</title>
+    <title>Loading</title>
     <style>
-        body { margin: 0; background: #16161a; color: #fffffe; font-family: system-ui, sans-serif; text-align: center; }
-        #canvas { width: 800px; height: 600px; background: #000; margin: 20px auto; display: block; border: 3px solid #72757e; border-radius: 4px; }
-        #progressContainer { width: 800px; background: #242629; margin: 20px auto; border-radius: 6px; overflow: hidden; display: block; border: 1px solid #72757e; }
-        #progressBar { width: 0%; height: 30px; background: #2cb67d; text-align: center; line-height: 30px; font-weight: bold; color: #fffffe; transition: width 0.1s linear; }
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            position: fixed;
+        }
+
+        body {
+            margin: 0;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/raw.js"></script>
 </head>
 <body>
+<canvas id="canvas"></canvas>
+<script type="module">
+    import JSZip from 'https://cdn.skypack.dev/jszip@3.10.1';
 
-    <h2>Counter-Strike 1.6 WebXash Engine</h2>
-    <div id="progressContainer">
-        <div id="progressBar">0% (Waiting for allocation)</div>
-    </div>
-    
-    <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    async function main() {
+        const files = {}
+        const res = await fetch('./valve.zip')
+        const zip = await JSZip.loadAsync(await res.arrayBuffer());
 
-    <script>
-        var Module = {
-            arguments: ['-game', 'cstrike'],
+        await Promise.all(Object.keys(zip.files).map(async p => {
+            const file = zip.files[p]
+            if (file.dir) return;
+
+            const path = `/rodir/${p}`;
+
+            files[path] = await file.async("uint8array")
+        }))
+
+        Xash3D({
+            arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus',  '0'],
             canvas: document.getElementById('canvas'),
-            setStatus: function(text) { console.log("Engine status: " + text); },
-            onRuntimeInitialized: function() {
-                console.log("Xash3D WebAssembly environment core loaded successfully.");
-            }
-        };
-
-        async function fetchGameFiles() {
-            // REPLACE THIS URL WITH YOUR DIRECT HUGGING FACE DOWNLOAD URL LATER
-            const fileUrl = 'https://huggingface.co';
-            const progressBar = document.getElementById('progressBar');
-
-            try {
-                const response = await fetch(fileUrl, { mode: 'cors' });
-                if (!response.ok) throw new Error("Server responded with error status code.");
-
-                const reader = response.body.getReader();
-                const contentLength = +response.headers.get('Content-Length');
-                
-                let receivedLength = 0;
-                let chunks = []; 
-
-                while(true) {
-                    const {done, value} = await reader.read();
-                    if (done) break;
-                    
-                    chunks.push(value);
-                    receivedLength += value.length;
-                    
-                    let percentage = ((receivedLength / contentLength) * 100).toFixed(1);
-                    progressBar.style.width = percentage + '%';
-                    progressBar.innerText = percentage + '% Buffered into RAM';
+            ctx: document.getElementById('canvas')
+                .getContext('webgl2', {
+                    alpha: false,
+                    depth: true,
+                    stencil: true,
+                    antialias: true
+                }),
+            dynamicLibraries: [
+                "filesystem_stdio.wasm",
+                "libref_gles3compat.wasm",
+                "cl_dlls/menu_emscripten_wasm32.wasm",
+                "dlls/cs_emscripten_wasm32.so",
+                "cl_dlls/client_emscripten_wasm32.wasm",
+                "/rwdir/filesystem_stdio.so",
+            ],
+            onRuntimeInitialized: function () {
+                Object.keys(files)
+                    .forEach(k => {
+                        const dir = k.split('/')
+                            .slice(0, -1)
+                            .join('/');
+                        this.FS.mkdirTree(dir);
+                        this.FS.writeFile(k, files[k]);
+                    })
+                this.FS.chdir('/rodir')
+            },
+            locateFile: (p) => {
+                switch (p) {
+                    case 'xash.wasm':
+                        return 'https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/xash.wasm'
+                    case '/rwdir/filesystem_stdio.so':
+                    case 'filesystem_stdio.wasm':
+                        return 'https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/filesystem_stdio.wasm'
+                    case 'libref_gles3compat.wasm':
+                        return 'https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/libref_gles3compat.wasm'
+                    case 'cl_dlls/menu_emscripten_wasm32.wasm':
+                        return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/cl_dll/menu_emscripten_wasm32.wasm'
+                    case 'dlls/cs_emscripten_wasm32.so':
+                        return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/dlls/cs_emscripten_wasm32.so'
+                    case 'cl_dlls/client_emscripten_wasm32.wasm':
+                        return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/cl_dll/client_emscripten_wasm32.wasm'
+                    default:
+                        return p
                 }
+            },
+        })
+    }
 
-                let allChunks = new Uint8Array(receivedLength);
-                let position = 0;
-                for(let chunk of chunks) {
-                    allChunks.set(chunk, position);
-                    position += chunk.length;
-                }
-
-                // Injects the downloaded data package directly into browser virtual RAM
-                Module['FS'].createDataFile('/', 'valve.zip', allChunks, true, true, true);
-                
-                document.getElementById('progressContainer').style.display = 'none';
-                console.log("Assets loaded. Starting WebAssembly engine execution loop.");
-                
-                loadScript("xash.js");
-
-            } catch (error) {
-                progressBar.style.background = "#ef4565";
-                progressBar.innerText = "RAM Allocation Failure: " + error.message;
-            }
-        }
-
-        function loadScript(src) {
-            let script = document.createElement('script');
-            script.src = src;
-            document.body.appendChild(script);
-        }
-
-        window.addEventListener('DOMContentLoaded', fetchGameFiles);
-    </script>
+    main()
+</script>
 </body>
 </html>
