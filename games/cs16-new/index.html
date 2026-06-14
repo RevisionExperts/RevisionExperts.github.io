@@ -17,27 +17,20 @@
             background: #000;
         }
     </style>
-    <!-- Pulling raw engine bundle seamlessly from open network source -->
     <script src="https://unpkg.com"></script>
-    
-    <!-- FIXED: Added standard global library script layout tag to bypass ES module CORS policies entirely -->
     <script src="https://cloudflare.com"></script>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 <script>
-    // Note: 'type=module' is removed so window.JSZip attaches safely to global browser scope
-
     async function main() {
         const files = {}
         
-        // Native GitHub Releases download URL targeting your published cs16-assets tag
-        const zipUrl = 'https://github.com';
+        // FIXED URL: Using the ://githubusercontent.com media stream endpoint to bypass the CORS redirection crash
+        const zipUrl = 'https://githubusercontent.com';
         
         console.log("Streaming Counter-Strike files from GitHub Release directly into RAM...");
         const res = await fetch(zipUrl);
-        
-        // FIXED: Using the globally available JSZip constructor 
         const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
 
         await Promise.all(Object.keys(zip.files).map(async p => {
