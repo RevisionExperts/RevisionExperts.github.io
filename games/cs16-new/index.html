@@ -28,7 +28,7 @@
         const originalUrl = 'https://huggingface.co';
         
         // 2. FIXED: Added the required forward slash (/? instead of ?)
-        const zipUrl = 'https://corsproxy.io?' + encodeURIComponent(originalUrl);
+        const zipUrl = 'https://corsproxy.io/?' + encodeURIComponent(originalUrl);
         
         // 3. Keep the fetch stream exact
         const res = await fetch(zipUrl);
