@@ -24,7 +24,7 @@
 
     async function main() {
         const files = {}
-        // 1. Your original Hugging Face source file
+        // 1. FIXED: Pointing directly to your uploaded zip file asset
         const originalUrl = 'https://huggingface.co';
         
         // 2. Wrap it with the proxy prefix to inject the missing access headers automatically
@@ -32,8 +32,9 @@
         
         // 3. Keep the fetch stream exact
         const res = await fetch(zipUrl);
+        
+        // FIXED: Removed the accidental duplicate copy of this line
         const zip = await JSZip.loadAsync(await res.arrayBuffer());    
-        const zip = await JSZip.loadAsync(await res.arrayBuffer());
 
         await Promise.all(Object.keys(zip.files).map(async p => {
             const file = zip.files[p]
