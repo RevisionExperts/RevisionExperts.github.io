@@ -17,14 +17,14 @@
             background: #000;
         }
     </style>
-    <!-- Keep the exact script URL you requested -->
-    <script src="https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/raw.js"></script>
+    <!-- FIXED: Moved engine away from jsdelivr over to the backup unpkg global network -->
+    <script src="https://unpkg.com"></script>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 <script type="module">
-    // FIXED: Swapped the broken skypack.dev link for a globally stable jsDelivr ES module link
-    import JSZip from 'https://jsdelivr.net';
+    // FIXED: Moved JSZip away from jsdelivr over to the alternative unpkg library stream
+    import JSZip from 'https://unpkg.com';
 
     async function main() {
         const files = {}
@@ -77,20 +77,21 @@
                 this.FS.chdir('/rodir')
             },
             locateFile: (p) => {
+                // FIXED: All internal WebAssembly fallback files rerouted away from jsdelivr to unpkg/cdnjs links
                 switch (p) {
                     case 'xash.wasm':
-                        return 'https://jsdelivr.net'
+                        return 'https://unpkg.com'
                     case '/rwdir/filesystem_stdio.so':
                     case 'filesystem_stdio.wasm':
-                        return 'https://jsdelivr.net'
+                        return 'https://unpkg.com'
                     case 'libref_gles3compat.wasm':
-                        return 'https://jsdelivr.net'
+                        return 'https://unpkg.com'
                     case 'cl_dlls/menu_emscripten_wasm32.wasm':
-                        return 'https://jsdelivr.net'
+                        return 'https://unpkg.com'
                     case 'dlls/cs_emscripten_wasm32.so':
-                        return 'https://jsdelivr.net'
+                        return 'https://unpkg.com'
                     case 'cl_dlls/client_emscripten_wasm32.wasm':
-                        return 'https://jsdelivr.net'
+                        return 'https://unpkg.com'
                     default:
                         return p
                 }
