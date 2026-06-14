@@ -23,76 +23,102 @@
 <body>
 <canvas id="canvas"></canvas>
 <script>
+    function downloadAssets(url) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = 'arraybuffer'; // Forces data straight into browser RAM array
+
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(xhr.response);
+                } else {
+                    reject(new Error('GitHub asset stream failed with status ' + xhr.status));
+                }
+            };
+
+            xhr.onerror = function() {
+                reject(new Error('Network connection error during RAM buffering.'));
+            };
+
+            xhr.send();
+        });
+    }
+
     async function main() {
         const files = {}
         
-        // FIXED URL: Using the ://githubusercontent.com media stream endpoint to bypass the CORS redirection crash
-        const zipUrl = 'https://supabase.co';
+        // Target your exact published GitHub Release file
+        const zipUrl = 'https://github.com';
         
         console.log("Streaming Counter-Strike files from GitHub Release directly into RAM...");
-        const res = await fetch(zipUrl);
-        const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
+        
+        try {
+            const buffer = await downloadAssets(zipUrl);
+            const zip = await window.JSZip.loadAsync(buffer);    
 
-        await Promise.all(Object.keys(zip.files).map(async p => {
-            const file = zip.files[p]
-            if (file.dir) return;
+            await Promise.all(Object.keys(zip.files).map(async p => {
+                const file = zip.files[p]
+                if (file.dir) return;
 
-            const path = `/rodir/${p}`;
+                const path = `/rodir/${p}`;
+                files[path] = await file.async("uint8array");
+            }));
 
-            files[path] = await file.async("uint8array")
-        }))
+            console.log("Unpacking complete. Launching Xash3D engine wrapper...");
 
-        console.log("Unpacking complete. Launching Xash3D engine wrapper...");
-
-        Xash3D({
-            arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus',  '0'],
-            canvas: document.getElementById('canvas'),
-            ctx: document.getElementById('canvas')
-                .getContext('webgl2', {
-                    alpha: false,
-                    depth: true,
-                    stencil: true,
-                    antialias: true
-                }),
-            dynamicLibraries: [
-                "filesystem_stdio.wasm",
-                "libref_gles3compat.wasm",
-                "cl_dlls/menu_emscripten_wasm32.wasm",
-                "dlls/cs_emscripten_wasm32.so",
-                "cl_dlls/client_emscripten_wasm32.wasm",
-                "/rwdir/filesystem_stdio.so",
-            ],
-            onRuntimeInitialized: function () {
-                Object.keys(files)
-                    .forEach(k => {
-                        const dir = k.split('/')
-                            .slice(0, -1)
-                            .join('/');
-                        this.FS.mkdirTree(dir);
-                        this.FS.writeFile(k, files[k]);
-                    })
-                this.FS.chdir('/rodir')
-            },
-            locateFile: (p) => {
-                switch (p) {
-                    case 'xash.wasm':
-                        return 'https://unpkg.com'
-                    case '/rwdir/filesystem_stdio.so':
-                    case 'filesystem_stdio.wasm':
-                        return 'https://unpkg.com'
-                    case 'libref_gles3compat.wasm':
-                        return 'https://unpkg.com'
-                    case 'cl_dlls/menu_emscripten_wasm32.wasm':
-                        return 'https://unpkg.com'
-                    case 'dlls/cs_emscripten_wasm32.so':
-                        return 'https://unpkg.com'
-                    case 'cl_dlls/client_emscripten_wasm32.wasm':
-                        return 'https://unpkg.com'
-                    default:
-                        return p
-                }
-            },
-        })
+            Xash3D({
+                arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus',  '0'],
+                canvas: document.getElementById('canvas'),
+                ctx: document.getElementById('canvas')
+                    .getContext('webgl2', {
+                        alpha: false,
+                        depth: true,
+                        stencil: true,
+                        antialias: true
+                    }),
+                dynamicLibraries: [
+                    "filesystem_stdio.wasm",
+                    "libref_gles3compat.wasm",
+                    "cl_dlls/menu_emscripten_wasm32.wasm",
+                    "dlls/cs_emscripten_wasm32.so",
+                    "cl_dlls/client_emscripten_wasm32.wasm",
+                    "/rwdir/filesystem_stdio.so",
+                ],
+                onRuntimeInitialized: function () {
+                    Object.keys(files)
+                        .forEach(k => {
+                            const dir = k.split('/')
+                                .slice(0, -1)
+                                .join('/');
+                            this.FS.mkdirTree(dir);
+                            this.FS.writeFile(k, files[k]);
+                        })
+                    this.FS.chdir('/rodir')
+                },
+                locateFile: (p) => {
+                    switch (p) {
+                        case 'xash.wasm':
+                            return 'https://unpkg.com'
+                        case '/rwdir/filesystem_stdio.so':
+                        case 'filesystem_stdio.wasm':
+                            return 'https://unpkg.com'
+                        case 'libref_gles3compat.wasm':
+                            return 'https://unpkg.com'
+                        case 'cl_dlls/menu_emscripten_wasm32.wasm':
+                            return 'https://unpkg.com'
+                        case 'dlls/cs_emscripten_wasm32.so':
+                            return 'https://unpkg.com'
+                        case 'cl_dlls/client_emscripten_wasm32.wasm':
+                            return 'https://unpkg.com'
+                        default:
+                            return p
+                    }
+                },
+            });
+        } catch (err) {
+            console.error("Fatal game boot error:", err.message);
+        }
     }
 
     main()
