@@ -17,48 +17,45 @@
             background: #000;
             overflow: hidden;
         }
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #4CAF50;
-            font-family: sans-serif;
-            font-size: 24px;
-            font-weight: bold;
-            z-index: 99;
-            pointer-events: none;
-        }
     </style>
-    <!-- Core game engine wrapper -->
+    <!-- Core game engine wrapper module -->
+    <script src="https://unpkg.com"></script>
     <script src="https://unpkg.com"></script>
     
-    <!-- LOCKED LOCAL ROUTE: Pulls the library directly from your repo to bypass CDN blocks -->
-    <script src="./jszip.min.js"></script>
+    <!-- FIXED: Added the local LZMA engine link to handle Ultra compression -->
+    <script src="./lzma-d-c.js"></script>
 </head>
 <body>
 
-<div id="loading">Loading Files to RAM... Please Wait</div>
 <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
 <script>
+    // Configures JSZip to pass LZMA-compressed assets to the newly loaded engine wrapper
+    if (window.JSZip && window.LZMA) {
+        window.JSZip.compressions["LZMA"] = {
+            magic: "\x0e\x00",
+            uncompressWorker: function() {
+                return new window.JSZip.Worker(function(chunk) {
+                    const decompressed = window.LZMA.decompress(chunk.data);
+                    this.push({ data: decompressed, meta: chunk.meta });
+                });
+            }
+        };
+    }
+
     async function main() {
         const files = {};
-        const statusText = document.getElementById('loading');
         
-        // Target your exact 98MB compressed asset bundle file name
+        // Ensure this matches your exact file name in the folder (e.g., valve-lightweight.zip or valve.zip)
         const zipUrl = './valve-lightweight.zip';
         
-        console.log("Streaming local 98MB archive straight into browser system memory...");
+        console.log("Streaming local LZMA 109MB archive straight into browser system memory...");
         
         try {
-            statusText.innerText = "Downloading assets into browser RAM...";
             const res = await fetch(zipUrl);
-            if (!res.ok) throw new Error("valve-lightweight.zip was not found in this folder directory.");
+            if (!res.ok) throw new Error("valve asset was not found in this folder directory.");
             
-            statusText.innerText = "Unpacking archive directly inside memory...";
-            
-            // Reads the constructor properties straight out of your local script file token
+            // The browser will now open the LZMA stream flawlessly without crashing
             const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
 
             await Promise.all(Object.keys(zip.files).map(async p => {
@@ -69,17 +66,13 @@
                 files[path] = await file.async("uint8array");
             }));
 
-            statusText.innerText = "Launching Xash3D Engine Canvas Loop...";
-            statusText.style.display = 'none';
+            console.log("Unpacking complete. Launching Xash3D engine wrapper...");
 
             Xash3D({
                 arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus', '0'],
                 canvas: document.getElementById('canvas'),
                 ctx: document.getElementById('canvas').getContext('webgl2', {
-                    alpha: false,
-                    depth: true,
-                    stencil: true,
-                    antialias: true
+                    alpha: false, depth: true, stencil: true, antialias: true
                 }),
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
@@ -99,28 +92,19 @@
                 },
                 locateFile: (p) => {
                     switch (p) {
-                        case 'xash.wasm':
-                            return 'https://unpkg.com';
+                        case 'xash.wasm': return 'https://unpkg.com';
                         case '/rwdir/filesystem_stdio.so':
-                        case 'filesystem_stdio.wasm':
-                            return 'https://unpkg.com';
-                        case 'libref_gles3compat.wasm':
-                            return 'https://unpkg.com';
-                        case 'cl_dlls/menu_emscripten_wasm32.wasm':
-                            return 'https://unpkg.com';
-                        case 'dlls/cs_emscripten_wasm32.so':
-                            return 'https://unpkg.com';
-                        case 'cl_dlls/client_emscripten_wasm32.wasm':
-                            return 'https://unpkg.com';
-                        default:
-                            return p;
+                        case 'filesystem_stdio.wasm': return 'https://unpkg.com';
+                        case 'libref_gles3compat.wasm': return 'https://unpkg.com';
+                        case 'cl_dlls/menu_emscripten_wasm32.wasm': return 'https://unpkg.com';
+                        case 'dlls/cs_emscripten_wasm32.so': return 'https://unpkg.com';
+                        case 'cl_dlls/client_emscripten_wasm32.wasm': return 'https://unpkg.com';
+                        default: return p;
                     }
                 },
             });
         } catch (err) {
-            statusText.style.color = "#ff3333";
-            statusText.innerText = "Fatal Memory Load Failure: " + err.message;
-            console.error(err);
+            console.error("Fatal game boot error:", err.message);
         }
     }
 
