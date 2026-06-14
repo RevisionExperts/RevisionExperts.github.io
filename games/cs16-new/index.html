@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+html<!DOCTYPE html>
 <html>
 <head>
-    <title>Loading</title>
+    <title>Counter-Strike 1.6 Web Terminal</title>
     <style>
         canvas {
             width: 100vw;
@@ -9,31 +9,44 @@
             top: 0;
             left: 0;
             position: fixed;
+            background: #000;
         }
-
         body {
             margin: 0;
+            background: #000;
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #4CAF50;
+            font-family: sans-serif;
+            font-size: 22px;
+            font-weight: bold;
+            z-index: 10;
+            pointer-events: none;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/raw.js"></script>
+    <script src="https://jsdelivr.net"></script>
 </head>
 <body>
+<div id="loading">Streaming Game Asset Bundles into System RAM...</div>
 <canvas id="canvas"></canvas>
 <script type="module">
-    import JSZip from 'https://cdn.skypack.dev/jszip@3.10.1';
+    import JSZip from 'https://skypack.dev';
 
     async function main() {
         const files = {}
-        // 1. FIXED: Pointed back to your real 1GB game asset path
-        const originalUrl = 'https://huggingface.co';
+        const statusText = document.getElementById('loading');
         
-        // 2. FIXED: Added the required forward slash (/? instead of ?)
-        const zipUrl = 'https://corsproxy.io/?' + encodeURIComponent(originalUrl);
+        // PERFECT TARGET: Points straight to your cs16-assets release binary file block
+        const zipUrl = 'https://github.com';
         
-        // 3. Keep the fetch stream exact
+        statusText.innerText = "Buffering game archive to browser RAM cache...";
         const res = await fetch(zipUrl);
         
-        // 4. FIXED: Removed the stray code error '));' from this line
+        statusText.innerText = "Extracting virtual structures inside system memory...";
         const zip = await JSZip.loadAsync(await res.arrayBuffer());    
 
         await Promise.all(Object.keys(zip.files).map(async p => {
@@ -41,9 +54,10 @@
             if (file.dir) return;
 
             const path = `/rodir/${p}`;
-
             files[path] = await file.async("uint8array")
         }))
+
+        statusText.style.display = 'none';
 
         Xash3D({
             arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus',  '0'],
@@ -77,18 +91,18 @@
             locateFile: (p) => {
                 switch (p) {
                     case 'xash.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/xash.wasm'
+                        return 'https://jsdelivr.net'
                     case '/rwdir/filesystem_stdio.so':
                     case 'filesystem_stdio.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/filesystem_stdio.wasm'
+                        return 'https://jsdelivr.net'
                     case 'libref_gles3compat.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/libref_gles3compat.wasm'
+                        return 'https://jsdelivr.net'
                     case 'cl_dlls/menu_emscripten_wasm32.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/cl_dll/menu_emscripten_wasm32.wasm'
+                        return 'https://jsdelivr.net'
                     case 'dlls/cs_emscripten_wasm32.so':
-                        return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/dlls/cs_emscripten_wasm32.so'
+                        return 'https://jsdelivr.net'
                     case 'cl_dlls/client_emscripten_wasm32.wasm':
-                        return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/cl_dll/client_emscripten_wasm32.wasm'
+                        return 'https://jsdelivr.net'
                     default:
                         return p
                 }
