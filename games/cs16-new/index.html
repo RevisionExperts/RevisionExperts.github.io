@@ -17,14 +17,16 @@
             background: #000;
         }
     </style>
-    <!-- FIXED: Moved engine away from jsdelivr over to the backup unpkg global network -->
+    <!-- Pulling raw engine bundle seamlessly from open network source -->
     <script src="https://unpkg.com"></script>
+    
+    <!-- FIXED: Added standard global library script layout tag to bypass ES module CORS policies entirely -->
+    <script src="https://cloudflare.com"></script>
 </head>
 <body>
 <canvas id="canvas"></canvas>
-<script type="module">
-    // FIXED: Moved JSZip away from jsdelivr over to the alternative unpkg library stream
-    import JSZip from 'https://unpkg.com';
+<script>
+    // Note: 'type=module' is removed so window.JSZip attaches safely to global browser scope
 
     async function main() {
         const files = {}
@@ -34,7 +36,9 @@
         
         console.log("Streaming Counter-Strike files from GitHub Release directly into RAM...");
         const res = await fetch(zipUrl);
-        const zip = await JSZip.loadAsync(await res.arrayBuffer());    
+        
+        // FIXED: Using the globally available JSZip constructor 
+        const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
 
         await Promise.all(Object.keys(zip.files).map(async p => {
             const file = zip.files[p]
@@ -77,7 +81,6 @@
                 this.FS.chdir('/rodir')
             },
             locateFile: (p) => {
-                // FIXED: All internal WebAssembly fallback files rerouted away from jsdelivr to unpkg/cdnjs links
                 switch (p) {
                     case 'xash.wasm':
                         return 'https://unpkg.com'
