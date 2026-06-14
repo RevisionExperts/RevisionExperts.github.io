@@ -32,8 +32,9 @@
     </style>
     <!-- Core game engine wrapper -->
     <script src="https://unpkg.com"></script>
-    <!-- Offline-safe unzip worker -->
-    <script src="https://cloudflare.com"></script>
+    
+    <!-- LOCKED LOCAL ROUTE: Pulls the library directly from your repo to bypass CDN blocks -->
+    <script src="./jszip.min.js"></script>
 </head>
 <body>
 
@@ -45,20 +46,21 @@
         const files = {};
         const statusText = document.getElementById('loading');
         
-        // PULLS LOCALLY: Zero CORS blocks, zero timeouts, zero external proxy layers
-        const zipUrl = './valve.zip';
+        // Target your exact 98MB compressed asset bundle file name
+        const zipUrl = './valve-lightweight.zip';
         
         console.log("Streaming local 98MB archive straight into browser system memory...");
         
         try {
             statusText.innerText = "Downloading assets into browser RAM...";
             const res = await fetch(zipUrl);
-            if (!res.ok) throw new Error("valve.zip was not found in this folder directory.");
+            if (!res.ok) throw new Error("valve-lightweight.zip was not found in this folder directory.");
             
             statusText.innerText = "Unpacking archive directly inside memory...";
+            
+            // Reads the constructor properties straight out of your local script file token
             const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
 
-            // Extract the compressed files into the virtual system directory map
             await Promise.all(Object.keys(zip.files).map(async p => {
                 const file = zip.files[p];
                 if (file.dir) return;
@@ -88,7 +90,6 @@
                     "/rwdir/filesystem_stdio.so",
                 ],
                 onRuntimeInitialized: function () {
-                    // Mount the file buffers into the engine's virtual directory map
                     Object.keys(files).forEach(k => {
                         const dir = k.split('/').slice(0, -1).join('/');
                         this.FS.mkdirTree(dir);
@@ -97,7 +98,6 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
-                    // Pull compiled game modules via stable, unblocked mirrors
                     switch (p) {
                         case 'xash.wasm':
                             return 'https://unpkg.com';
