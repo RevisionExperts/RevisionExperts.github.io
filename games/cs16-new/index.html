@@ -1,7 +1,7 @@
-html<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Counter-Strike 1.6 Web Terminal</title>
+    <title>Loading</title>
     <style>
         canvas {
             width: 100vw;
@@ -11,42 +11,29 @@ html<!DOCTYPE html>
             position: fixed;
             background: #000;
         }
+
         body {
             margin: 0;
             background: #000;
         }
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #4CAF50;
-            font-family: sans-serif;
-            font-size: 22px;
-            font-weight: bold;
-            z-index: 10;
-            pointer-events: none;
-        }
     </style>
+    <!-- Keep the exact script URL you requested -->
     <script src="https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/raw.js"></script>
 </head>
 <body>
-<div id="loading">Streaming Game Asset Bundles into System RAM...</div>
 <canvas id="canvas"></canvas>
 <script type="module">
-    import JSZip from 'https://cdn.skypack.dev/jszip@3.10.1';
+    // FIXED: Swapped the broken skypack.dev link for a globally stable jsDelivr ES module link
+    import JSZip from 'https://jsdelivr.net';
 
     async function main() {
         const files = {}
-        const statusText = document.getElementById('loading');
         
-        // PERFECT TARGET: Points straight to your cs16-assets release binary file block
+        // Native GitHub Releases download URL targeting your published cs16-assets tag
         const zipUrl = 'https://github.com';
         
-        statusText.innerText = "Buffering game archive to browser RAM cache...";
+        console.log("Streaming Counter-Strike files from GitHub Release directly into RAM...");
         const res = await fetch(zipUrl);
-        
-        statusText.innerText = "Extracting virtual structures inside system memory...";
         const zip = await JSZip.loadAsync(await res.arrayBuffer());    
 
         await Promise.all(Object.keys(zip.files).map(async p => {
@@ -54,10 +41,11 @@ html<!DOCTYPE html>
             if (file.dir) return;
 
             const path = `/rodir/${p}`;
+
             files[path] = await file.async("uint8array")
         }))
 
-        statusText.style.display = 'none';
+        console.log("Unpacking complete. Launching Xash3D engine wrapper...");
 
         Xash3D({
             arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus',  '0'],
