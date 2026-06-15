@@ -1,8 +1,9 @@
-<!-- _includes/game_card.html -->
-<a href="{{ include.location | relative_url }}" class="arcade-card-tab" style="background-color: {{ include.bg_color | default: '#ffffff' }} !important;">
-  <div class="card-image-box" style="background-image: url('{{ include.image | relative_url }}');"></div>
-  <div class="card-text-box">
-    <h2>{{ include.name }}</h2>
+<div class="game-card">
+  <div class="game-card-image">
+    {{ include.image }}
+  </div>
+  <div class="game-card-content">
+    <h3><a href="{{ include.location | relative_url }}">{{ include.name }}</a></h3>
     <p>{{ include.description }}</p>
   </div>
-</a>
+</div>
