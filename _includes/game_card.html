@@ -1,5 +1,11 @@
-<div class="game-card">
-  {{ include.image }}
-  <h3>{{ include.name }}</h3>
-  <p>{{ include.description }}</p>
+<div class="tab-content" id="game-{{ include.name | slugify }}">
+  <div class="game-card">
+    <div class="game-card-image">
+      {{ include.image }}
+    </div>
+    <div class="game-card-content">
+      <h3><a href="{{ include.location | relative_url }}">{{ include.name }}</a></h3>
+      <p>{{ include.description }}</p>
+    </div>
+  </div>
 </div>
