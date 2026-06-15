@@ -1,77 +1,101 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Counter-Strike 1.6 Web Port</title>
+    <title>Counter-Strike 1.6</title>
     <style>
-        /* Force the WebGL canvas to take up the full screen */
-        canvas { 
-            width: 100vw; 
-            height: 100vh; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            background-color: #000;
-        }
-        body { 
-            margin: 0; 
-            overflow: hidden; 
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            position: fixed;
             background: #000;
-            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            background: #000;
+            overflow: hidden;
         }
     </style>
-
-    <!-- FIX: Declare LZMA target namespace before loading the dependency scripts -->
-    <script>
-        window.LZMA = window.LZMA || {};
-        window.LZMA_WORKER = window.LZMA_WORKER || {};
-    </script>
-
-    <!-- Load core Xash3D WebAssembly raw loader from jsDelivr CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/xash3d-fwgs@latest/dist/raw.js"></script>
+    <!-- Core game engine wrapper loaded 100% locally from your repository -->
+    <script src="./raw.js"></script>
+    <script src="./jszip.min.js"></script>
+    <script src="./lzma-d.js"></script>
 </head>
 <body>
 
-    <!-- The engine targets this specific element to render the game screen -->
-    <canvas id="canvas"></canvas>
+<canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
-    <script type="module">
-        // Import additional required compression and client SDKs directly 
-        import JSZip from 'https://jsdelivr.net';
-
-        async function initGameEngine() {
-            try {
-                console.log("Initializing Xash3D-FWGS Engine...");
-
-                // Initialize the package window structure 
-                const ENV = {
-                    canvas: document.getElementById('canvas'),
-                    arguments: ['-dev', '3', '-log'],
-                    
-                    // Maps internal WASM system paths to the proper compiled client DLL paths
-                    locateFile: (path) => {
-                        if (path === 'cl_dlls/client_emscripten_wasm32.wasm') {
-                            return 'https://cdn.jsdelivr.net/npm/cs16-client@latest/dist/cl_dll/client_emscripten_wasm32.wasm';
-                        }
-                        return path;
-                    }
-                };
-
-                // Bind the initialized environment variables to the global loader context
-                if (window.Xash3D) {
-                    window.Xash3D(ENV);
-                } else {
-                    console.error("Xash3D raw engine script failed to bind globally.");
-                }
-
-            } catch (error) {
-                console.error("Error setting up game engine runtime environment:", error);
+<script>
+    // Configures JSZip to handle the LZMA compression mapping using the loaded decompressor engine
+    if (window.JSZip && window.LZMA) {
+        window.JSZip.compressions["LZMA"] = {
+            magic: "\x0e\x00",
+            uncompressWorker: function() {
+                return new window.JSZip.Worker(function(chunk) {
+                    const decompressed = window.LZMA.decompress(chunk.data);
+                    this.push({ data: decompressed, meta: chunk.meta });
+                });
             }
-        }
+        };
+    }
 
-        // Run setup immediately on window compilation
-        window.addEventListener('DOMContentLoaded', initGameEngine);
-    </script>
+    async function main() {
+        const files = {};
+        const zipUrl = './valve-lightweight.zip';
+        
+        console.log("Streaming local LZMA 109MB archive straight into browser system memory...");
+        
+        try {
+            const res = await fetch(zipUrl);
+            if (!res.ok) throw new Error("valve asset was not found in this folder directory.");
+            
+            const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
+
+            await Promise.all(Object.keys(zip.files).map(async p => {
+                const file = zip.files[p];
+                if (file.dir) return;
+
+                const path = `/rodir/${p}`;
+                files[path] = await file.async("uint8array");
+            }));
+
+            console.log("Unpacking complete. Launching Xash3D engine wrapper...");
+
+            Xash3D({
+                arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus', '0'],
+                canvas: document.getElementById('canvas'),
+                ctx: document.getElementById('canvas').getContext('webgl2', {
+                    alpha: false, depth: true, stencil: true, antialias: true
+                }),
+                dynamicLibraries: [
+                    "filesystem_stdio.wasm",
+                    "libref_webgl2.wasm", // UPDATED: Calls the correct local WebGL2 file
+                    "cl_dlls/menu_emscripten_wasm32.wasm",
+                    "dlls/cs_emscripten_wasm32.so",
+                    "cl_dlls/client_emscripten_wasm32.wasm",
+                    "/rwdir/filesystem_stdio.so",
+                ],
+                onRuntimeInitialized: function () {
+                    Object.keys(files).forEach(k => {
+                        const dir = k.split('/').slice(0, -1).join('/');
+                        this.FS.mkdirTree(dir);
+                        this.FS.writeFile(k, files[k]);
+                    });
+                    this.FS.chdir('/rodir');
+                },
+                locateFile: (p) => {
+                    // Forces the WebAssembly binaries to load natively from your repository folder
+                    return './' + p;
+                },
+            });
+        } catch (err) {
+            console.error("Fatal game boot error:", err.message);
+        }
+    }
+
+    main();
+</script>
 </body>
 </html>
