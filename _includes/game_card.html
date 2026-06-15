@@ -1,11 +1,11 @@
-<div class="tab-content" id="game-{{ include.name | slugify }}">
+<div class="tab-content" id="game-{{ include.name | slugify }}" style="background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
   <div class="game-card">
-    <div class="game-card-image">
+    <div class="game-card-image" style="margin-bottom: 12px;">
       {{ include.image }}
     </div>
     <div class="game-card-content">
-      <h3><a href="{{ include.location | relative_url }}">{{ include.name }}</a></h3>
-      <p>{{ include.description }}</p>
+      <h3 style="margin: 0 0 6px 0; font-size: 1.25rem;"><a href="{{ include.location | relative_url }}" style="color: #fff; text-decoration: none;">{{ include.name }}</a></h3>
+      <p style="margin: 0; color: #ccc; font-size: 0.95rem; line-height: 1.4;">{{ include.description }}</p>
     </div>
   </div>
 </div>
