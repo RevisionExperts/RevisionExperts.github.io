@@ -46,6 +46,13 @@
      location="/games/ultrakill" 
      name="ULTRAKILL" 
      description="BLOOD IS FUEL" 
+
+  <!-- Planet Clicker-->
+  {% include game_card.html 
+     location="/games/planet-clicker" 
+     name="Planet Clicker" 
+     description="Planet but the clicker" 
+ 
      image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT0gj1uUkzcGq6dbsvuO4A8qMSbIrusfY3aag3rzJlvXw&s"
      bg_color="#ED2100" %}
 
