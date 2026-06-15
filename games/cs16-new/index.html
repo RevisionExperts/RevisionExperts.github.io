@@ -18,11 +18,9 @@
             overflow: hidden;
         }
     </style>
-    <!-- Core game engine wrapper module -->
-    <script src="https://unpkg.com"></script>
-    <script src="https://unpkg.com"></script>
-    
-    <!-- FIXED: Added the local LZMA engine link to handle Ultra compression -->
+    <!-- Core game engine wrapper loaded 100% locally from your repository -->
+    <script src="./raw.js"></script>
+    <script src="./jszip.min.js"></script>
     <script src="./lzma-d.js"></script>
 </head>
 <body>
@@ -30,7 +28,7 @@
 <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
 <script>
-    // Configures JSZip to pass LZMA-compressed assets to the newly loaded engine wrapper
+    // Configures JSZip to handle the LZMA compression mapping using the loaded decompressor engine
     if (window.JSZip && window.LZMA) {
         window.JSZip.compressions["LZMA"] = {
             magic: "\x0e\x00",
@@ -45,8 +43,6 @@
 
     async function main() {
         const files = {};
-        
-        // Ensure this matches your exact file name in the folder (e.g., valve-lightweight.zip or valve.zip)
         const zipUrl = './valve-lightweight.zip';
         
         console.log("Streaming local LZMA 109MB archive straight into browser system memory...");
@@ -55,7 +51,6 @@
             const res = await fetch(zipUrl);
             if (!res.ok) throw new Error("valve asset was not found in this folder directory.");
             
-            // The browser will now open the LZMA stream flawlessly without crashing
             const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
 
             await Promise.all(Object.keys(zip.files).map(async p => {
@@ -76,7 +71,7 @@
                 }),
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
-                    "libref_gles3compat.wasm",
+                    "libref_webgl2.wasm", // UPDATED: Calls the correct local WebGL2 file
                     "cl_dlls/menu_emscripten_wasm32.wasm",
                     "dlls/cs_emscripten_wasm32.so",
                     "cl_dlls/client_emscripten_wasm32.wasm",
@@ -91,16 +86,8 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
-                    switch (p) {
-                        case 'xash.wasm': return 'https://unpkg.com';
-                        case '/rwdir/filesystem_stdio.so':
-                        case 'filesystem_stdio.wasm': return 'https://unpkg.com';
-                        case 'libref_gles3compat.wasm': return 'https://unpkg.com';
-                        case 'cl_dlls/menu_emscripten_wasm32.wasm': return 'https://unpkg.com';
-                        case 'dlls/cs_emscripten_wasm32.so': return 'https://unpkg.com';
-                        case 'cl_dlls/client_emscripten_wasm32.wasm': return 'https://unpkg.com';
-                        default: return p;
-                    }
+                    // Forces the WebAssembly binaries to load natively from your repository folder
+                    return './' + p;
                 },
             });
         } catch (err) {
