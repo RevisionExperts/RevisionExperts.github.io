@@ -43,10 +43,10 @@
 
   <!-- ULTRAKILL -->
   {% include game_card.html 
-     location="/games/ultrakill" 
-     name="ULTRAKILL" 
-     description="BLOOD IS FUEL" 
-     image="<img width="300" height="168" alt="image" src="https://github.com/user-attachments/assets/7fbcaec7-023f-4a49-8d1e-8ec16ab9f4fa" %}
+  location="/games/ultrakill" 
+  name="ULTRAKILL" 
+  description="BLOOD IS FUEL" 
+  image="<img width='300' height='168' alt='image' src='https://github.com/user-attachments/assets/7fbcaec7-023f-4a49-8d1e-8ec16ab9f4fa'>" %}
 
   <!-- Planet Clicker-->
   {% include game_card.html 
