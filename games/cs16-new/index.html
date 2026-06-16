@@ -30,8 +30,8 @@
         }
     </style>
     <!-- Core self-hosted game engine files -->
-    <script src="./raw.js?v=2"></script>
-    <script src="./jszip.min.js?v=2"></script>
+    <script src="./raw.js?v=3"></script>
+    <script src="./jszip.min.js?v=3"></script>
 </head>
 <body>
 
@@ -42,7 +42,7 @@
     async function main() {
         const files = {};
         const statusText = document.getElementById('loading');
-        const zipUrl = './valve-lightweight.zip?v=2'; 
+        const zipUrl = './valve-lightweight.zip?v=3'; 
         
         console.log("Streaming local archive straight into browser system memory...");
         
@@ -71,9 +71,10 @@
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
                 }),
-                // FIXED: Removed the external libref file array target to let the core engine handle graphics internally
+                // FIXED: Directing the internal loader array map to use the local software renderer library
                 dynamicLibraries: [
-                    "filesystem_stdio.wasm"
+                    "filesystem_stdio.wasm",
+                    "libref_soft.wasm"
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
@@ -84,7 +85,7 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
-                    return './' + p + '?v=2';
+                    return './' + p + '?v=3';
                 },
             });
         } catch (err) {
