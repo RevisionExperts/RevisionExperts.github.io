@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>Counter-Strike 1.6</title>
@@ -16,6 +17,18 @@
             background: #000;
             overflow: hidden;
         }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #4CAF50;
+            font-family: sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 99;
+            pointer-events: none;
+        }
     </style>
     <!-- Core game engine components loaded 100% locally from your repo folder -->
     <script src="./raw.js"></script>
@@ -23,20 +36,23 @@
 </head>
 <body>
 
+<div id="loading">Streaming Game Files to RAM... Please Wait</div>
 <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
 <script>
     async function main() {
         const files = {};
-        const zipUrl = './valve-lightweight.zip'; // Targets your unblocked, local 94.8MB file
+        const statusText = document.getElementById('loading');
+        const zipUrl = './valve-lightweight.zip'; // Targets your unblocked, local 97MB Deflate file
         
         console.log("Streaming local archive straight into browser system memory...");
         
         try {
+            statusText.innerText = "Downloading assets into browser RAM...";
             const res = await fetch(zipUrl);
-            if (!res.ok) throw new Error("valve.zip asset was not found in this folder directory.");
+            if (!res.ok) throw new Error("valve-lightweight.zip asset was not found in this folder directory.");
             
-            // Standard archives open natively without script extensions
+            statusText.innerText = "Unpacking archive directly inside memory...";
             const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
 
             await Promise.all(Object.keys(zip.files).map(async p => {
@@ -47,7 +63,8 @@
                 files[path] = await file.async("uint8array");
             }));
 
-            console.log("Unpacking complete. Launching local Xash3D engine runtime wrapper...");
+            statusText.innerText = "Launching local Xash3D engine runtime wrapper...";
+            statusText.style.display = 'none';
 
             Xash3D({
                 arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus', '0'],
@@ -76,7 +93,9 @@
                 },
             });
         } catch (err) {
-            console.error("Fatal game boot error:", err.message);
+            statusText.style.color = "#ff3333";
+            statusText.innerText = "Fatal Memory Load Failure: " + err.message;
+            console.error(err);
         }
     }
 
