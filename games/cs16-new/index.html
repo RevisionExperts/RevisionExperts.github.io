@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html>
 <head>
     <title>Counter-Strike 1.6</title>
@@ -30,7 +29,7 @@
             pointer-events: none;
         }
     </style>
-    <!-- Core game engine components loaded 100% locally from your repo folder -->
+    <!-- Core self-hosted game engine files -->
     <script src="./raw.js"></script>
     <script src="./jszip.min.js"></script>
 </head>
@@ -43,14 +42,14 @@
     async function main() {
         const files = {};
         const statusText = document.getElementById('loading');
-        const zipUrl = './valve-lightweight.zip'; // Targets your unblocked, local 97MB Deflate file
+        const zipUrl = './valve-lightweight.zip'; 
         
         console.log("Streaming local archive straight into browser system memory...");
         
         try {
             statusText.innerText = "Downloading assets into browser RAM...";
             const res = await fetch(zipUrl);
-            if (!res.ok) throw new Error("valve-lightweight.zip asset was not found in this folder directory.");
+            if (!res.ok) throw new Error("valve-lightweight.zip asset was not found.");
             
             statusText.innerText = "Unpacking archive directly inside memory...";
             const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
@@ -63,7 +62,7 @@
                 files[path] = await file.async("uint8array");
             }));
 
-            statusText.innerText = "Launching local Xash3D engine runtime wrapper...";
+            statusText.innerText = "Launching local engine wrapper...";
             statusText.style.display = 'none';
 
             Xash3D({
@@ -72,12 +71,10 @@
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
                 }),
+                // INTERNAL BOOT PATHS: Bypasses external .wasm files to run directly out of xash.wasm
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
                     "libref_webgl2.wasm", 
-                    "cl_dlls/menu_emscripten_wasm32.wasm",
-                    "dlls/cs_emscripten_wasm32.so",
-                    "cl_dlls/client_emscripten_wasm32.wasm",
                     "/rwdir/filesystem_stdio.so",
                 ],
                 onRuntimeInitialized: function () {
