@@ -71,11 +71,10 @@
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
                 }),
-                // INTERNAL BOOT PATHS: Bypasses external .wasm files to run directly out of xash.wasm
+                // FIXED: Removed "/rwdir/filesystem_stdio.so" to block the server 404 loop crash
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
-                    "libref_webgl2.wasm", 
-                    "/rwdir/filesystem_stdio.so",
+                    "libref_webgl2.wasm"
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
