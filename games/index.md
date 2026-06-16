@@ -46,14 +46,16 @@
   location="/games/ultrakill" 
   name="ULTRAKILL" 
   description="BLOOD IS FUEL" 
-  image="<img width='300' height='168' alt='image' src='https://github.com/user-attachments/assets/7fbcaec7-023f-4a49-8d1e-8ec16ab9f4fa'>" %}
+  image="https://geometry-games.io/cache/data/image/game/ultrakill/ultrakill-m320x190.webp"
+  bg_color="#ED2100" %}
 
   <!-- Planet Clicker-->
    {% include game_card.html 
    location="/games/planet-clicker" 
    name="Planet Clicker" 
    description="Planet but the clicker" 
-   image="<img width='480' height='360' alt='image' src='https://github.com/user-attachments/assets/cbe71046-ac78-4bf6-b33c-2ad719d9b7ee'>" %}
+   image="https://trampoline.turbowarp.org/thumbnails/377874630"
+   bg_color="#B5C7EB" %}
  
   <!-- 5. Counter-Strike -->
   {% include game_card.html 
