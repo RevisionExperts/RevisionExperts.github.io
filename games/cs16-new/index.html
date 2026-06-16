@@ -71,7 +71,6 @@
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
                 }),
-                // FIXED: Removed "/rwdir/filesystem_stdio.so" to block the server 404 loop crash
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
                     "libref_webgl2.wasm"
@@ -85,6 +84,10 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
+                    // FIXED: If the engine looks for the old graphics name, point it straight to your webgl2 file
+                    if (p === 'libref_gles3compat.wasm' || p === 'libref_webgl2.wasm') {
+                        return './libref_webgl2.wasm';
+                    }
                     return './' + p;
                 },
             });
