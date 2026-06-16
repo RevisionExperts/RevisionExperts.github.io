@@ -29,9 +29,9 @@
             pointer-events: none;
         }
     </style>
-    <!-- Core self-hosted game engine files -->
-    <script src="./raw.js"></script>
-    <script src="./jszip.min.js"></script>
+    <!-- FIXED: Added cache-busting strings to force the browser to clear old network memory -->
+    <script src="./raw.js?v=1"></script>
+    <script src="./jszip.min.js?v=1"></script>
 </head>
 <body>
 
@@ -42,7 +42,7 @@
     async function main() {
         const files = {};
         const statusText = document.getElementById('loading');
-        const zipUrl = './valve-lightweight.zip'; 
+        const zipUrl = './valve-lightweight.zip?v=1'; 
         
         console.log("Streaming local archive straight into browser system memory...");
         
@@ -73,7 +73,7 @@
                 }),
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
-                    "libref_webgl2.wasm"
+                    "libref_gles3compat.wasm"
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
@@ -84,11 +84,8 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
-                    // FIXED: If the engine looks for the old graphics name, point it straight to your webgl2 file
-                    if (p === 'libref_gles3compat.wasm' || p === 'libref_webgl2.wasm') {
-                        return './libref_webgl2.wasm';
-                    }
-                    return './' + p;
+                    // FIXED: Force-injects the cache buster parameters straight into the underlying engine array loops
+                    return './' + p + '?v=1';
                 },
             });
         } catch (err) {
