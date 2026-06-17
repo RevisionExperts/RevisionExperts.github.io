@@ -30,8 +30,8 @@
         }
     </style>
     <!-- Core self-hosted game engine files running 100% locally from your folder -->
-    <script src="./raw.js?v=5"></script>
-    <script src="./jszip.min.js?v=5"></script>
+    <script src="./raw.js?v=6"></script>
+    <script src="./jszip.min.js?v=6"></script>
 </head>
 <body>
 
@@ -42,7 +42,7 @@
     async function main() {
         const files = {};
         const statusText = document.getElementById('loading');
-        const zipUrl = './valve-lightweight.zip?v=5'; 
+        const zipUrl = './valve-lightweight.zip?v=6'; 
         
         console.log("Streaming local archive straight into browser system memory...");
         
@@ -71,11 +71,10 @@
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
                 }),
-                // ALL SYSTEM FILES INSTANTIATED NATIVELY FROM YOUR REPOSITORY TRAY
+                // FIXED: Stripped the desktop .so binaries to force internal module execution
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
-                    "libref_soft.wasm",
-                    "cl_dlls/client_emscripten_wasm32.wasm"
+                    "libref_soft.wasm"
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
@@ -86,7 +85,7 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
-                    return './' + p + '?v=5';
+                    return './' + p + '?v=6';
                 },
             });
         } catch (err) {
