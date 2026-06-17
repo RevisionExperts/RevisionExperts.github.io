@@ -74,9 +74,6 @@
                 // FINALISED: Added the menu WebAssembly binary into the running architecture list
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
-                    "libref_soft.wasm",
-                    "cl_dlls/client_emscripten_wasm32.wasm",
-                    "cl_dlls/menu_emscripten_wasm32.wasm"
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
