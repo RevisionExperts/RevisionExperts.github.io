@@ -29,9 +29,9 @@
             pointer-events: none;
         }
     </style>
-    <!-- Core self-hosted game engine files running 100% locally from your folder -->
-    <script src="./raw.js?v=6"></script>
-    <script src="./jszip.min.js?v=6"></script>
+    <!-- Core self-hosted game engine files -->
+    <script src="./raw.js?v=8"></script>
+    <script src="./jszip.min.js?v=8"></script>
 </head>
 <body>
 
@@ -42,7 +42,7 @@
     async function main() {
         const files = {};
         const statusText = document.getElementById('loading');
-        const zipUrl = './valve-lightweight.zip?v=6'; 
+        const zipUrl = './valve-lightweight.zip?v=8'; 
         
         console.log("Streaming local archive straight into browser system memory...");
         
@@ -71,10 +71,12 @@
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
                 }),
-                // FIXED: Stripped the desktop .so binaries to force internal module execution
+                // FINALISED: Added the menu WebAssembly binary into the running architecture list
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
-                    "libref_soft.wasm"
+                    "libref_soft.wasm",
+                    "cl_dlls/client_emscripten_wasm32.wasm",
+                    "cl_dlls/menu_emscripten_wasm32.wasm"
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
@@ -85,7 +87,7 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
-                    return './' + p + '?v=6';
+                    return './' + p + '?v=8';
                 },
             });
         } catch (err) {
