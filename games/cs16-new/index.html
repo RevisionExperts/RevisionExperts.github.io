@@ -73,7 +73,7 @@
             } catch(e) {}
 
             Xash3D({
-                arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus', '0'],
+                arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus', '0', '-nomodlibs'],
                 canvas: document.getElementById('canvas'),
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
