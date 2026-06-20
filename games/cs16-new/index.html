@@ -30,8 +30,8 @@
         }
     </style>
     <!-- Core self-hosted game engine files -->
-    <script src="./raw.js?v=11"></script>
-    <script src="./jszip.min.js?v=11"></script>
+    <script src="./raw.js?v=12"></script>
+    <script src="./jszip.min.js?v=12"></script>
 </head>
 <body>
 
@@ -42,7 +42,7 @@
     async function main() {
         const files = {};
         const statusText = document.getElementById('loading');
-        const zipUrl = './valve-lightweight.zip?v=11'; 
+        const zipUrl = './valve-lightweight.zip?v=12'; 
         
         console.log("Streaming local archive straight into browser system memory...");
         
@@ -65,15 +65,23 @@
             statusText.innerText = "Launching local engine wrapper...";
             statusText.style.display = 'none';
 
+            // Check which rendering file actually exists in your repository folder
+            let rendererFile = "libref_webgl2.wasm";
+            try {
+                const testRes = await fetch('./libref_gles3compat.wasm', { method: 'HEAD' });
+                if (testRes.ok) rendererFile = "libref_gles3compat.wasm";
+            } catch(e) {}
+
             Xash3D({
                 arguments: ['-windowed', '-game', 'cstrike', '+_vgui_menus', '0'],
                 canvas: document.getElementById('canvas'),
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
                 }),
-                // FIXED COMMA SYNTAX: Perfectly formatted to prevent structural engine crashes
+                // FIXED: Dynamically loads whichever local graphics module is present in your folder
                 dynamicLibraries: [
-                    "filesystem_stdio.wasm"
+                    "filesystem_stdio.wasm",
+                    rendererFile
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
@@ -84,7 +92,7 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
-                    return './' + p + '?v=11';
+                    return './' + p + '?v=12';
                 },
             });
         } catch (err) {
