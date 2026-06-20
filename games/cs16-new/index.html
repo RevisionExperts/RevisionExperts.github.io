@@ -73,7 +73,8 @@
                 }),
                 // FINALISED: Added the menu WebAssembly binary into the running architecture list
                 dynamicLibraries: [
-                    "filesystem_stdio.wasm",
+                    "filesystem_stdio.wasm"
+                    "libref_gles3compat.wasm",
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
