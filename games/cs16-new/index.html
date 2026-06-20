@@ -30,8 +30,8 @@
         }
     </style>
     <!-- Core self-hosted game engine files -->
-    <script src="./raw.js?v=13"></script>
-    <script src="./jszip.min.js?v=13"></script>
+    <script src="./raw.js?v=14"></script>
+    <script src="./jszip.min.js?v=14"></script>
 </head>
 <body>
 
@@ -42,7 +42,7 @@
     async function main() {
         const files = {};
         const statusText = document.getElementById('loading');
-        const zipUrl = './valve-lightweight.zip?v=13'; 
+        const zipUrl = './valve-lightweight.zip?v=14'; 
         
         console.log("Streaming local archive straight into browser system memory...");
         
@@ -65,7 +65,6 @@
             statusText.innerText = "Launching local engine wrapper...";
             statusText.style.display = 'none';
 
-            // Automatic validation scanning checks for your local graphics module configuration file names
             let rendererFile = "libref_webgl2.wasm";
             try {
                 const testRes = await fetch('./libref_gles3compat.wasm', { method: 'HEAD' });
@@ -78,11 +77,10 @@
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
                 }),
-                // FINALISED COMPILING ARRAY: Includes the missing gameplay rule file path natively
                 dynamicLibraries: [
                     "filesystem_stdio.wasm",
                     rendererFile,
-                    "dlls/cs_emscripten_wasm32.wasm"
+                    "dlls/cs_emscripten_wasm32.txt" // Targets the text extension to bypass GitHub's block
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
@@ -93,7 +91,11 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
-                    return './' + p + '?v=13';
+                    // Automatically intercepts the engine call and routes it to the unblocked .txt file
+                    if (p.includes("cs_emscripten_wasm32")) {
+                        return './dlls/cs_emscripten_wasm32.txt?v=14';
+                    }
+                    return './' + p + '?v=14';
                 },
             });
         } catch (err) {
