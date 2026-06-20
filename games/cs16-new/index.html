@@ -30,8 +30,8 @@
         }
     </style>
     <!-- Core self-hosted game engine files -->
-    <script src="./raw.js?v=8"></script>
-    <script src="./jszip.min.js?v=8"></script>
+    <script src="./raw.js?v=11"></script>
+    <script src="./jszip.min.js?v=11"></script>
 </head>
 <body>
 
@@ -42,14 +42,14 @@
     async function main() {
         const files = {};
         const statusText = document.getElementById('loading');
-        const zipUrl = './valve-lightweight.zip?v=8'; 
+        const zipUrl = './valve-lightweight.zip?v=11'; 
         
         console.log("Streaming local archive straight into browser system memory...");
         
         try {
             statusText.innerText = "Downloading assets into browser RAM...";
             const res = await fetch(zipUrl);
-            if (!res.ok) throw new Error("valve-lightweight.zip asset was not found in this folder directory.");
+            if (!res.ok) throw new Error("valve-lightweight.zip asset was not found.");
             
             statusText.innerText = "Unpacking archive directly inside memory...";
             const zip = await window.JSZip.loadAsync(await res.arrayBuffer());    
@@ -71,10 +71,9 @@
                 ctx: document.getElementById('canvas').getContext('webgl2', {
                     alpha: false, depth: true, stencil: true, antialias: true
                 }),
-                // FINALISED: Added the menu WebAssembly binary into the running architecture list
+                // FIXED COMMA SYNTAX: Perfectly formatted to prevent structural engine crashes
                 dynamicLibraries: [
                     "filesystem_stdio.wasm"
-                    "libref_gles3compat.wasm",
                 ],
                 onRuntimeInitialized: function () {
                     Object.keys(files).forEach(k => {
@@ -85,7 +84,7 @@
                     this.FS.chdir('/rodir');
                 },
                 locateFile: (p) => {
-                    return './' + p + '?v=8';
+                    return './' + p + '?v=11';
                 },
             });
         } catch (err) {
